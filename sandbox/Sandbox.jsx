@@ -68,7 +68,17 @@ export default class Sandbox extends React.Component {
   onClickGraph = () => toast("Clicked the graph");
 
   onClickNode = (event, id, node) => {
-    toast(`Clicked node ${id} in position (${node.x}, ${node.y})`);
+    if (event.shiftKey) {
+      toast(`Shift-clicked node ${id} in position (${node.x}, ${node.y})`);
+    } else if (event.ctrlKey) {
+      toast(`Ctrl-clicked node ${id} in position (${node.x}, ${node.y})`);
+    } else if (event.altKey) {
+      toast(`Alt-clicked node ${id} in position (${node.x}, ${node.y})`);
+    } else if (event.metaKey) {
+      toast(`Cmd-clicked node ${id} in position (${node.x}, ${node.y})`);
+    } else {
+      toast(`Clicked node ${id} in position (${node.x}, ${node.y})`);
+    }
     // NOTE: below sample implementation for focusAnimation when clicking on node
     // this.setState({
     //     data: {
