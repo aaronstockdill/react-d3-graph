@@ -67,7 +67,7 @@ export default class Sandbox extends React.Component {
 
   onClickGraph = () => toast("Clicked the graph");
 
-  onClickNode = (id, node) => {
+  onClickNode = (event, id, node) => {
     toast(`Clicked node ${id} in position (${node.x}, ${node.y})`);
     // NOTE: below sample implementation for focusAnimation when clicking on node
     // this.setState({
@@ -78,7 +78,7 @@ export default class Sandbox extends React.Component {
     // });
   };
 
-  onDoubleClickNode = (id, node) => {
+  onDoubleClickNode = (event, id, node) => {
     toast(`Double clicked node ${id} in position (${node.x}, ${node.y})`);
   };
 
@@ -87,25 +87,25 @@ export default class Sandbox extends React.Component {
     toast(`Right clicked node ${id} in position (${node.x}, ${node.y})`);
   };
 
-  onClickLink = (source, target) => toast(`Clicked link between ${source} and ${target}`);
+  onClickLink = (event, source, target) => toast(`Clicked link between ${source} and ${target}`);
 
   onRightClickLink = (event, source, target) => {
     event.preventDefault();
     toast(`Right clicked link between ${source} and ${target}`);
   };
 
-  onMouseOverNode = (id, node) => {
+  onMouseOverNode = (event, id, node) => {
     console.info(`Do something when mouse is over node ${id} in position (${node.x}, ${node.y})`);
   };
 
-  onMouseOutNode = (id, node) => {
+  onMouseOutNode = (event, id, node) => {
     console.info(`Do something when mouse is out of node ${id} in position (${node.x}, ${node.y})`);
   };
 
-  onMouseOverLink = (source, target) =>
+  onMouseOverLink = (event, source, target) =>
     console.info(`Do something when mouse is over link between ${source} and ${target}`);
 
-  onMouseOutLink = (source, target) =>
+  onMouseOutLink = (event, source, target) =>
     console.info(`Do something when mouse is out of link between ${source} and ${target}`);
 
   onNodePositionChange = (nodeId, x, y) =>

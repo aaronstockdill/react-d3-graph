@@ -363,7 +363,10 @@ export default class Graph extends React.Component {
    * @param  {string} clickedNodeId - The id of the node where the click was performed.
    * @returns {undefined}
    */
-  onClickNode = clickedNodeId => {
+  onClickNode = (event, clickedNodeId) => {
+    if (event !== undefined) {
+      event.persist();
+    }
     const clickedNode = this.state.nodes[clickedNodeId];
     if (!this.nodeClickTimer) {
       // Note: onDoubleClickNode is not defined we don't need a long wait
@@ -392,7 +395,7 @@ export default class Graph extends React.Component {
               d3Links,
             },
             () => {
-              this.props.onClickNode && this.props.onClickNode(clickedNodeId, clickedNode);
+              this.props.onClickNode && this.props.onClickNode(event, clickedNodeId, clickedNode);
 
               if (isExpanding) {
                 this._graphNodeDragConfig();
@@ -400,12 +403,12 @@ export default class Graph extends React.Component {
             }
           );
         } else {
-          this.props.onClickNode && this.props.onClickNode(clickedNodeId, clickedNode);
+          this.props.onClickNode && this.props.onClickNode(event, clickedNodeId, clickedNode);
         }
         this.nodeClickTimer = null;
       }, ttl);
     } else {
-      this.props.onDoubleClickNode && this.props.onDoubleClickNode(clickedNodeId, clickedNode);
+      this.props.onDoubleClickNode && this.props.onDoubleClickNode(event, clickedNodeId, clickedNode);
       this.nodeClickTimer = clearTimeout(this.nodeClickTimer);
     }
   };
@@ -417,6 +420,9 @@ export default class Graph extends React.Component {
    * @returns {undefined}
    */
   onRightClickNode = (event, id) => {
+    if (event !== undefined) {
+      event.persist();
+    }
     const clickedNode = this.state.nodes[id];
     this.props.onRightClickNode && this.props.onRightClickNode(event, id, clickedNode);
   };
@@ -426,13 +432,16 @@ export default class Graph extends React.Component {
    * @param  {string} id - id of the node that participates in the event.
    * @returns {undefined}
    */
-  onMouseOverNode = id => {
+  onMouseOverNode = (event, id) => {
+    if (event !== undefined) {
+      event.persist();
+    }
     if (this.isDraggingNode) {
       return;
     }
 
     const clickedNode = this.state.nodes[id];
-    this.props.onMouseOverNode && this.props.onMouseOverNode(id, clickedNode);
+    this.props.onMouseOverNode && this.props.onMouseOverNode(event, id, clickedNode);
 
     this.state.config.nodeHighlightBehavior && this._setNodeHighlightedValue(id, true);
   };
@@ -442,13 +451,16 @@ export default class Graph extends React.Component {
    * @param  {string} id - id of the node that participates in the event.
    * @returns {undefined}
    */
-  onMouseOutNode = id => {
+  onMouseOutNode = (event, id) => {
+    if (event !== undefined) {
+      event.persist();
+    }
     if (this.isDraggingNode) {
       return;
     }
 
     const clickedNode = this.state.nodes[id];
-    this.props.onMouseOutNode && this.props.onMouseOutNode(id, clickedNode);
+    this.props.onMouseOutNode && this.props.onMouseOutNode(event, id, clickedNode);
 
     this.state.config.nodeHighlightBehavior && this._setNodeHighlightedValue(id, false);
   };
@@ -459,8 +471,11 @@ export default class Graph extends React.Component {
    * @param  {string} target - id of the target node that participates in the event.
    * @returns {undefined}
    */
-  onMouseOverLink = (source, target) => {
-    this.props.onMouseOverLink && this.props.onMouseOverLink(source, target);
+  onMouseOverLink = (event, source, target) => {
+    if (event !== undefined) {
+      event.persist();
+    }
+    this.props.onMouseOverLink && this.props.onMouseOverLink(event, source, target);
 
     if (this.state.config.linkHighlightBehavior) {
       const highlightedLink = { source, target };
@@ -475,7 +490,10 @@ export default class Graph extends React.Component {
    * @param  {string} target - id of the target node that participates in the event.
    * @returns {undefined}
    */
-  onMouseOutLink = (source, target) => {
+  onMouseOutLink = (event, source, target) => {
+    if (event !== undefined) {
+      event.persist();
+    }
     this.props.onMouseOutLink && this.props.onMouseOutLink(source, target);
 
     if (this.state.config.linkHighlightBehavior) {

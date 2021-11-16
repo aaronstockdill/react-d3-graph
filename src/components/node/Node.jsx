@@ -55,28 +55,31 @@ import { logWarning } from "../../utils";
 export default class Node extends React.Component {
   /**
    * Handle click on the node.
+   * @param {Object} event - synthetic event
    * @returns {undefined}
    */
-  handleOnClickNode = () => this.props.onClickNode && this.props.onClickNode(this.props.id);
+  handleOnClickNode = event => this.props.onClickNode && this.props.onClickNode(event, this.props.id);
 
   /**
    * Handle right click on the node.
-   * @param {Object} event - native event.
+   * @param {Object} event - synthetic event.
    * @returns {undefined}
    */
   handleOnRightClickNode = event => this.props.onRightClickNode && this.props.onRightClickNode(event, this.props.id);
 
   /**
    * Handle mouse over node event.
+   * @param {Object} event - synthetic event
    * @returns {undefined}
    */
-  handleOnMouseOverNode = () => this.props.onMouseOverNode && this.props.onMouseOverNode(this.props.id);
+  handleOnMouseOverNode = event => this.props.onMouseOverNode && this.props.onMouseOverNode(event, this.props.id);
 
   /**
    * Handle mouse out node event.
+   * @param {Object} event - synthetic event
    * @returns {undefined}
    */
-  handleOnMouseOutNode = () => this.props.onMouseOut && this.props.onMouseOut(this.props.id);
+  handleOnMouseOutNode = event => this.props.onMouseOut && this.props.onMouseOut(event, this.props.id);
 
   render() {
     const nodeProps = {
