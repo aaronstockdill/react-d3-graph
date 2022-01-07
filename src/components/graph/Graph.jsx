@@ -216,6 +216,13 @@ export default class Graph extends React.Component {
     this.isDraggingNode = false;
 
     if (this.state.draggedNode) {
+      if (!this.props.onNodeDragEnd) {
+        return;
+      }
+
+      const { id, x, y } = this.state.draggedNode;
+      this.props.onNodeDragEnd(id, x, y);
+
       this.onNodePositionChange(this.state.draggedNode);
       this._tick({ draggedNode: null });
     }
@@ -258,6 +265,12 @@ export default class Graph extends React.Component {
 
         this._tick({ draggedNode });
       }
+
+      if (!this.props.onNodeDragMove) {
+        return;
+      }
+
+      this.props.onNodeDragMove(id, draggedNode.x, draggedNode.y);
     }
   };
 
@@ -265,13 +278,23 @@ export default class Graph extends React.Component {
    * Handles d3 drag 'start' event.
    * @returns {undefined}
    */
-  _onDragStart = () => {
+  _onDragStart = (ev, index, nodeList) => {
     this.isDraggingNode = true;
     this.pauseSimulation();
 
     if (this.state.enableFocusAnimation) {
       this.setState({ enableFocusAnimation: false });
     }
+
+    let id = nodeList[index].id;
+    let draggedNode = this.state.nodes[id];
+
+    if (!this.props.onNodeDragStart) {
+      return;
+    }
+
+    const { x, y } = draggedNode;
+    this.props.onNodeDragStart(id, x, y);
   };
 
   /**
