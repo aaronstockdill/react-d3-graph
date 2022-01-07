@@ -212,7 +212,7 @@ export default class Graph extends React.Component {
    * Handles d3 drag 'end' event.
    * @returns {undefined}
    */
-  _onDragEnd = () => {
+  _onDragEnd = ev => {
     this.isDraggingNode = false;
 
     if (this.state.draggedNode) {
@@ -221,7 +221,7 @@ export default class Graph extends React.Component {
       }
 
       const { id, x, y } = this.state.draggedNode;
-      this.props.onNodeDragEnd(id, x, y);
+      this.props.onNodeDragEnd(ev, id, x, y);
 
       this.onNodePositionChange(this.state.draggedNode);
       this._tick({ draggedNode: null });
@@ -270,7 +270,7 @@ export default class Graph extends React.Component {
         return;
       }
 
-      this.props.onNodeDragMove(id, draggedNode.x, draggedNode.y);
+      this.props.onNodeDragMove(ev, id, draggedNode.x, draggedNode.y);
     }
   };
 
@@ -294,7 +294,7 @@ export default class Graph extends React.Component {
     }
 
     const { x, y } = draggedNode;
-    this.props.onNodeDragStart(id, x, y);
+    this.props.onNodeDragStart(ev, id, x, y);
   };
 
   /**
