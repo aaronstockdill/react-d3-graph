@@ -260,7 +260,7 @@ function buildNodeProps(node, config, nodeCallbacks = {}, highlightedNode, highl
     overrideGlobalViewGenerator: !node.viewGenerator && node.svg,
     renderLabel,
     labelClass,
-    size: isSizeNumericValue ? nodeSize * t : { height: nodeSize.height * t, width: nodeSize.width * t },
+    size: isSizeNumericValue ? nodeSize * t : { height: nodeSize.height, width: nodeSize.width },
     stroke,
     strokeWidth: strokeWidth * t,
     svg,
