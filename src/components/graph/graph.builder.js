@@ -156,7 +156,7 @@ function buildLinkProps(link, nodes, links, config, linkCallbacks, highlightedNo
     opacity,
     source,
     stroke,
-    strokeWidth,
+    strokeWidth: strokeWidth / t,
     strokeDasharray,
     strokeDashoffset,
     strokeLinecap,
