@@ -2,7 +2,7 @@ import React from "react";
 
 import { drag as d3Drag } from "d3-drag";
 import { forceLink as d3ForceLink } from "d3-force";
-import { select as d3Select, selectAll as d3SelectAll, event as d3Event } from "d3-selection";
+import { select as d3Select, selectAll as d3SelectAll } from "d3-selection";
 import { zoom as d3Zoom } from "d3-zoom";
 
 import CONST from "./graph.const";
@@ -208,23 +208,30 @@ export default class Graph extends React.Component {
     }
   }
 
+  _nodeIdFromEvent = e => {
+    var target = e.sourceEvent.target;
+    while (target && !target.classList.contains("node")) {
+      target = target.parentElement;
+    }
+    return (target && target.id) || null;
+  }
+
   /**
    * Handles d3 drag 'end' event.
    * @returns {undefined}
    */
-  _onDragEnd = ev => {
+  _onDragEnd = e => {
     this.isDraggingNode = false;
 
     if (this.state.draggedNode) {
-      if (!this.props.onNodeDragEnd) {
-        return;
+      if (this.props.onNodeDragEnd) {
+        const { id, x, y } = this.state.draggedNode;
+        this.props.onNodeDragEnd(e, id, x, y);
       }
-
-      const { id, x, y } = this.state.draggedNode;
-      this.props.onNodeDragEnd(ev, id, x, y);
 
       this.onNodePositionChange(this.state.draggedNode);
       this._tick({ draggedNode: null });
+      this.draggedNode = null;
     }
 
     !this.state.config.staticGraph &&
@@ -241,18 +248,16 @@ export default class Graph extends React.Component {
    * node contains all information that was previously fed by rd3g.
    * @returns {undefined}
    */
-  _onDragMove = (ev, index, nodeList) => {
-    const id = nodeList[index].id;
-
-    if (!this.state.config.staticGraph) {
+  _onDragMove = e => {
+    if (!this.state.config.staticGraph && this.draggedNodeId) {
       // this is where d3 and react bind
-      let draggedNode = this.state.nodes[id];
+      let draggedNode = this.state.nodes[this.draggedNodeId];
 
       draggedNode.oldX = draggedNode.x;
       draggedNode.oldY = draggedNode.y;
 
-      const newX = draggedNode.x + d3Event.dx;
-      const newY = draggedNode.y + d3Event.dy;
+      const newX = draggedNode.x + e.dx;
+      const newY = draggedNode.y + e.dy;
       const shouldUpdateNode = !this.state.config.bounded || isPositionInBounds({ x: newX, y: newY }, this.state);
 
       if (shouldUpdateNode) {
@@ -266,11 +271,9 @@ export default class Graph extends React.Component {
         this._tick({ draggedNode });
       }
 
-      if (!this.props.onNodeDragMove) {
-        return;
+      if (this.props.onNodeDragMove) {
+        this.props.onNodeDragMove(e, draggedNode.id, draggedNode.x, draggedNode.y);
       }
-
-      this.props.onNodeDragMove(ev, id, draggedNode.x, draggedNode.y);
     }
   };
 
@@ -278,7 +281,7 @@ export default class Graph extends React.Component {
    * Handles d3 drag 'start' event.
    * @returns {undefined}
    */
-  _onDragStart = (ev, index, nodeList) => {
+  _onDragStart = e => {
     this.isDraggingNode = true;
     this.pauseSimulation();
 
@@ -286,15 +289,16 @@ export default class Graph extends React.Component {
       this.setState({ enableFocusAnimation: false });
     }
 
-    let id = nodeList[index].id;
-    let draggedNode = this.state.nodes[id];
+    if (!this.state.config.staticGraph) {
+      const id = this._nodeIdFromEvent(e);
+      let draggedNode = this.state.nodes[id];
+      this.draggedNodeId = id;
 
-    if (!this.props.onNodeDragStart) {
-      return;
+      if (this.props.onNodeDragStart) {
+        const { x, y } = draggedNode;
+        this.props.onNodeDragStart(e, id, x, y);
+      }
     }
-
-    const { x, y } = draggedNode;
-    this.props.onNodeDragStart(ev, id, x, y);
   };
 
   /**
@@ -345,8 +349,8 @@ export default class Graph extends React.Component {
    * Handler for 'zoom' event within zoom config.
    * @returns {Object} returns the transformed elements within the svg graph area.
    */
-  _zoomed = () => {
-    const transform = d3Event.transform;
+  _zoomed = (e) => {
+    const transform = e.transform;
 
     d3SelectAll(`#${this.state.id}-${CONST.GRAPH_CONTAINER_ID}`).attr("transform", transform);
 
@@ -387,9 +391,6 @@ export default class Graph extends React.Component {
    * @returns {undefined}
    */
   onClickNode = (event, clickedNodeId) => {
-    if (event !== undefined) {
-      event.persist();
-    }
     const clickedNode = this.state.nodes[clickedNodeId];
     if (!this.nodeClickTimer) {
       // Note: onDoubleClickNode is not defined we don't need a long wait
@@ -443,9 +444,6 @@ export default class Graph extends React.Component {
    * @returns {undefined}
    */
   onRightClickNode = (event, id) => {
-    if (event !== undefined) {
-      event.persist();
-    }
     const clickedNode = this.state.nodes[id];
     this.props.onRightClickNode && this.props.onRightClickNode(event, id, clickedNode);
   };
@@ -456,9 +454,6 @@ export default class Graph extends React.Component {
    * @returns {undefined}
    */
   onMouseOverNode = (event, id) => {
-    if (event !== undefined) {
-      event.persist();
-    }
     if (this.isDraggingNode) {
       return;
     }
@@ -475,9 +470,6 @@ export default class Graph extends React.Component {
    * @returns {undefined}
    */
   onMouseOutNode = (event, id) => {
-    if (event !== undefined) {
-      event.persist();
-    }
     if (this.isDraggingNode) {
       return;
     }
@@ -495,9 +487,6 @@ export default class Graph extends React.Component {
    * @returns {undefined}
    */
   onMouseOverLink = (event, source, target) => {
-    if (event !== undefined) {
-      event.persist();
-    }
     this.props.onMouseOverLink && this.props.onMouseOverLink(event, source, target);
 
     if (this.state.config.linkHighlightBehavior) {
@@ -514,9 +503,6 @@ export default class Graph extends React.Component {
    * @returns {undefined}
    */
   onMouseOutLink = (event, source, target) => {
-    if (event !== undefined) {
-      event.persist();
-    }
     this.props.onMouseOutLink && this.props.onMouseOutLink(source, target);
 
     if (this.state.config.linkHighlightBehavior) {
