@@ -345,5 +345,7 @@ export default {
     strokeDasharray: 0,
     strokeDashoffset: 0,
     strokeLinecap: "butt",
+    offsetSource: {dx: 0, dy: 0},
+    offsetTarget: {dx: 0, dy: 0},
   },
 };
