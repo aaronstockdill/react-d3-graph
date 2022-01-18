@@ -55,14 +55,8 @@ function _getNodeOpacity(node, highlightedNode, highlightedLink, config) {
  */
 function buildLinkProps(link, nodes, links, config, linkCallbacks, highlightedNode, highlightedLink, transform) {
   const { source, target } = link;
-  const offsetSource =
-        link.offsetSource
-        || config.link.offsetSource
-        || {dx: 0, dy: 0};
-  const offsetTarget =
-        link.offsetTarget
-        || config.link.offsetTarget
-        || {dx: 0, dy: 0};
+  const offsetSource = link.offsetSource || config.link.offsetSource || { dx: 0, dy: 0 };
+  const offsetTarget = link.offsetTarget || config.link.offsetTarget || { dx: 0, dy: 0 };
 
   let x1 = (nodes?.[source]?.x || 0) + offsetSource.dx;
   let y1 = (nodes?.[source]?.y || 0) + offsetSource.dy;
@@ -71,6 +65,7 @@ function buildLinkProps(link, nodes, links, config, linkCallbacks, highlightedNo
 
   const type = link.type || config.link.type;
   const selfLinkDirection = link.selfLinkDirection || config.link.selfLinkDirection;
+  const parallelSpread = link.parallelSpread || config.link.parallelSpread;
 
   let mainNodeParticipates = false;
 
@@ -150,6 +145,9 @@ function buildLinkProps(link, nodes, links, config, linkCallbacks, highlightedNo
     link.breakPoints,
     link.source,
     link.target,
+    link.parallelIdx,
+    link.parallelCount,
+    parallelSpread,
     selfLinkDirection
   );
 
