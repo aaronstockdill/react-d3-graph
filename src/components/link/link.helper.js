@@ -218,16 +218,12 @@ function buildLinkPathDefinition(
   // If they're parallel but with break-points, assume author knows what they're doing.
   if (breakPoints.length === 0 && parallelCount > 1) {
     const length = Math.sqrt(Math.pow(Math.abs(sx - tx), 2) + Math.pow(Math.abs(sy - ty), 2));
-    const tightestArcDeviation = length * parallelSpread;
+    const tightestArcDeviation = length * parallelSpread * Math.pow(0.85, Math.floor(parallelCount / 2));
     const deviationSize =
       (parallelCount % 2 == 0
         ? (() => {
             const mid = parallelCount / 2;
-            if (parallelIdx < mid) {
-              return parallelIdx - mid;
-            } else {
-              return parallelIdx - mid + 1;
-            }
+            return parallelIdx - mid + 0.5;
           })()
         : (() => {
             const mid = (parallelCount - 1) / 2;
