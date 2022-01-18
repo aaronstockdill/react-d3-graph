@@ -62,6 +62,7 @@ function buildLinkProps(link, nodes, links, config, linkCallbacks, highlightedNo
 
   const type = link.type || config.link.type;
   const selfLinkDirection = link.selfLinkDirection || config.link.selfLinkDirection;
+  const parallelSpread = link.parallelSpread || config.link.parallelSpread;
 
   let mainNodeParticipates = false;
 
@@ -141,6 +142,9 @@ function buildLinkProps(link, nodes, links, config, linkCallbacks, highlightedNo
     link.breakPoints,
     link.source,
     link.target,
+    link.parallelIdx,
+    link.parallelCount,
+    parallelSpread,
     selfLinkDirection
   );
 

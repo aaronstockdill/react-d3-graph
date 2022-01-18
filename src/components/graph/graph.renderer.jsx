@@ -36,11 +36,36 @@ function _renderLinks(nodes, links, linksMatrix, config, linkCallbacks, highligh
     outLinks = outLinks.filter(({ isHidden }) => !isHidden);
   }
 
-  return outLinks.map(link => {
+  // Parallel edges need special handling
+  let parallels = outLinks.reduce((parallels, link) => {
     const { source, target } = link;
     const sourceId = getId(source);
     const targetId = getId(target);
-    const key = `${sourceId}${CONST.COORDS_SEPARATOR}${targetId}`;
+    const connects = `${sourceId}${CONST.COORDS_SEPARATOR}${targetId}`;
+    parallels[connects] = parallels[connects] || [];
+    parallels[connects].push(link);
+    return parallels;
+  }, {});
+  let result = [];
+  for (const key in parallels) {
+    const count = parallels[key].length;
+    let idx = 0;
+    result.push(
+      parallels[key].map((link) => {
+        const myIdx = idx;
+        idx++;
+        const isLoop = getId(link.source) === getId(link.target);
+        return { ...link, parallelIdx: myIdx, parallelCount: count, isLoop: isLoop };
+      })
+    );
+  }
+  outLinks = result.flat();
+
+  return outLinks.map((link) => {
+    const { source, target } = link;
+    const sourceId = getId(source);
+    const targetId = getId(target);
+    const key = link.id ? link.id : `${sourceId}${CONST.COORDS_SEPARATOR}${targetId}`;
     const props = buildLinkProps(
       { ...link, source: `${sourceId}`, target: `${targetId}` },
       nodes,
@@ -74,10 +99,10 @@ function _renderNodes(nodes, nodeCallbacks, config, highlightedNode, highlighted
   let outNodes = Object.keys(nodes);
 
   if (config.collapsible) {
-    outNodes = outNodes.filter(nodeId => isNodeVisible(nodeId, nodes, linksMatrix));
+    outNodes = outNodes.filter((nodeId) => isNodeVisible(nodeId, nodes, linksMatrix));
   }
 
-  return outNodes.map(nodeId => {
+  return outNodes.map((nodeId) => {
     const props = buildNodeProps(
       { ...nodes[nodeId], id: `${nodeId}` },
       config,
@@ -101,7 +126,7 @@ function _renderNodes(nodes, nodeCallbacks, config, highlightedNode, highlighted
 function _renderDefs() {
   let markerCache = {};
 
-  return config => {
+  return (config) => {
     const highlightColor =
       !config.link.highlightColor || config.link.highlightColor === "SAME"
         ? config.link.color
