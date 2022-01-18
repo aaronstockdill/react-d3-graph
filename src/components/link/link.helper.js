@@ -6,43 +6,134 @@
 import { LINE_TYPES, SELF_LINK_DIRECTION } from "./link.const";
 
 /**
- * Computes radius value for a straight line.
- * @returns {number} radius for straight line.
+ * Computes path value for a straight line.
+ * @param {Array.<Object>} points - points being connected
+ * @returns {string} path for straight line.
  * @memberof Link/helper
  */
-function straightLineRadius() {
-  return 0;
+function straightLineRadius(points) {
+  return points
+    .map((point, i) => {
+      let { x, y } = point;
+      if (i == 0) {
+        return `M${x},${y}`;
+      } else {
+        return `L${x},${y}`;
+      }
+    })
+    .concat(" ");
 }
 
 /**
- * Computes radius for a smooth curve effect.
- * @param {number} x1 - x value for point 1
- * @param {number} y1 - y value for point 1
- * @param {number} x2 - y value for point 2
- * @param {number} y2 - y value for point 2
- * @returns{number} value of radius.
+ * Computes path for a smooth curve effect.
+ * @param {Array.<Object>} points - points being connected
+ * @returns{string} path for a smooth curve.
  * @memberof Link/helper
  */
-function smoothCurveRadius(x1, y1, x2, y2) {
-  const dx = x2 - x1;
-  const dy = y2 - y1;
-
-  return Math.sqrt(dx * dx + dy * dy);
+function smoothCurveRadius(points) {
+  return points
+    .map((point, i) => {
+      const { x, y } = point;
+      if (i == 0) {
+        return `M${x},${y}`;
+      } else {
+        const { x: x1, y: y1 } = points[i - 1];
+        const dx = x1 - x;
+        const dy = y1 - y;
+        const radius = Math.sqrt(dx * dx + dy * dy);
+        return `A${radius},${radius} 0 0,1 ${x},${y}`;
+      }
+    })
+    .concat(" ");
 }
 
 /**
- * Computes radius value for a full curve (semi circumference).
- * @returns {number} radius for full curve.
+ * Computes path value for a full curve (semi circumference).
+ * @param {Array.<Object>} points - points being connected
+ * @returns {string} path for full curve.
  * @memberof Link/helper
  */
-function fullCurveRadius() {
-  return 1;
+function fullCurveRadius(points) {
+  return points
+    .map((point, i) => {
+      const { x, y } = point;
+      if (i == 0) {
+        return `M${x},${y}`;
+      } else {
+        return `A1,1 0 0,1 ${x},${y}`;
+      }
+    })
+    .concat(" ");
+}
+
+/**
+ * Computes path value for a smooth Catmull-Rom curve through all the points.
+ * @param {Array.<Object>} points - points being connected
+ * @returns {string} path for Catmull-Rom curve.
+ * @memberof Link/helper
+ */
+function catmullRom(points) {
+  const alpha = 0.5;
+  const fin = points.length - 1;
+  const knots = [0];
+  // for (let i = 1; i < fin; i++) {
+  //   const { x: x1, y: y1 } = points[i];
+  //   const { x: x2, y: y2 } = points[i + 1];
+  //   const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+  //   const t = Math.pow(length, alpha) + knots[knots.length - 1];
+  // });
+  return points
+    .map((point, i) => {
+      const { x, y } = point;
+      if (i == 0) {
+        return `M${x},${y}`;
+        // } else if (i == 1 || i == fin) {
+        // return `T${x},${y}`;
+      } else {
+        return `T${x},${y}`;
+        //     const p0 = points[i-2];
+        //     const p1 = points[i-1];
+        //     const p2 = point;
+        //     const p3 = points[i+1];
+
+        //     const t0 = knots[i-2];
+        //     const t1 = knots[i-1];
+        //     const t2 = knots[i];
+        //     const t3 = knotss[i+1];
+
+        //     const c1 = (t2-t1)/(t2-t0);
+        //     const c2 = (t1-t0)/(t2-t0);
+        //     const d1 = (t3-t2)/(t3-t1);
+        //     const d2 = (t2-t1)/(t3-t1);
+
+        //     const m1 = {
+        //         x: (t2-t1)*(c1*(p1.x-p0.x)/(t1-t0) + c2*(p2.x-p1.x)/(t2-t1)),
+        //         y: (t2-t1)*(c1*(p1.y-p0.y)/(t1-t0) + c2*(p2.y-p1.y)/(t2-t1))
+        //     }
+        //     const m2 = {
+        //         x: (t2-t1)*(d1*(p2.x-p1.x)/(t2-t1) + d2*(p3.x-p2.x)/(t3-t2)),
+        //         y: (t2-t1)*(d1*(p2.y-p1.y)/(t2-t1) + d2*(p3.y-p2.y)/(t3-t2)),
+        //     };
+
+        //     const q1 = {
+        //         x: p1.x + m1.x/3,
+        //         y: p1.y + m1.y/3
+        //     };
+        //     const q2 = {
+        //         x: p2.x - m2.x/3,
+        //         y: p2.y - m2.y/3
+        //     };
+        //     return `C${q1.x},${q1.y} ${q2.x},${q2.y} ${x}${y}`;
+      }
+    })
+    .concat(" ");
 }
 
 const RADIUS_STRATEGIES = {
   [LINE_TYPES.STRAIGHT]: straightLineRadius,
   [LINE_TYPES.CURVE_SMOOTH]: smoothCurveRadius,
   [LINE_TYPES.CURVE_FULL]: fullCurveRadius,
+  [LINE_TYPES.CATMULL_ROM]: catmullRom,
 };
 
 /**
@@ -95,19 +186,12 @@ function buildLinkPathDefinition(
     }
   }
   const validType = LINE_TYPES[type] || LINE_TYPES.STRAIGHT;
-  const calcRadiusFn = getRadiusStrategy(validType);
+  const calcPathFn = getRadiusStrategy(validType);
 
-  const restOfLinkPoints = [...breakPoints, targetCoords];
-  const restOfLinkPath = restOfLinkPoints
-    .map(({ x, y }, i) => {
-      const { x: px, y: py } = i > 0 ? restOfLinkPoints[i - 1] : sourceCoords;
-      const radius = calcRadiusFn(px, py, x, y);
+  const linkPoints = [sourceCoords, ...breakPoints, targetCoords];
+  const linkPath = calcPathFn(linkPoints);
 
-      return ` A${radius},${radius} 0 0,1 ${x},${y}`;
-    })
-    .join("");
-
-  return `M${sx},${sy}${restOfLinkPath}`;
+  return `${linkPath}`;
 }
 
 export { buildLinkPathDefinition };
