@@ -55,7 +55,9 @@ function _renderLinks(nodes, links, linksMatrix, config, linkCallbacks, highligh
         const myIdx = idx;
         idx++;
         const isLoop = getId(link.source) === getId(link.target);
-        return { ...link, parallelIdx: myIdx, parallelCount: count, isLoop: isLoop };
+        const trailer = count > 1 ? `${CONST.COORDS_SEPARATOR}${myIdx}` : "";
+        const key = link.id ? link.id : `${sourceId}${CONST.COORDS_SEPARATOR}${targetId}${trailer}`;
+        return { ...link, id: key, parallelIdx: myIdx, parallelCount: count, isLoop: isLoop };
       })
     );
   }
@@ -65,7 +67,7 @@ function _renderLinks(nodes, links, linksMatrix, config, linkCallbacks, highligh
     const { source, target } = link;
     const sourceId = getId(source);
     const targetId = getId(target);
-    const key = link.id ? link.id : `${sourceId}${CONST.COORDS_SEPARATOR}${targetId}`;
+    const key = link.id;
     const props = buildLinkProps(
       { ...link, source: `${sourceId}`, target: `${targetId}` },
       nodes,
