@@ -100,13 +100,9 @@ function buildLinkPathDefinition(
 
   // If they're parallel but with break-points, assume author knows what they're doing.
   if (breakPoints.length === 0 && parallelCount > 1) {
-    const maybeType = LINE_TYPES[type] || LINE_TYPES.STRAIGHT;
-    if (maybeType === LINE_TYPES.STRAIGHT) {
-      type = CURVE_SMOOTH; // Can't connect parallel edges all straight!
-    }
     const length = Math.sqrt(Math.pow(Math.abs(sx - tx), 2) + Math.pow(Math.abs(sy - ty), 2));
-    const tightest_arc_deviation = length * parallelSpread;
-    const deviation_size =
+    const tightestArcDeviation = length * parallelSpread;
+    const deviationSize =
       (parallelCount % 2 == 0
         ? (() => {
             const mid = parallelCount / 2;
@@ -119,11 +115,15 @@ function buildLinkPathDefinition(
         : (() => {
             const mid = (parallelCount - 1) / 2;
             return parallelIdx - mid;
-          })()) * tightest_arc_deviation;
-    const midPt = { x: (sx + ts) / 2, y: (sy + ty) / 2 };
-    const dirVec = { x: (sy - ty) / length, y: (tx - sx) / length };
-    const arcPt = { x: midPt.x + dirVec.x * deviation_size, y: midPt.y + dirVec.y * deviationSize };
-    breakPoints = [arcPt];
+          })()) * tightestArcDeviation;
+    if (Math.abs(deviationSize) < 0.00001) {
+      breakPoints = [];
+    } else {
+      const midPt = { x: (sx + tx) / 2, y: (sy + ty) / 2 };
+      const dirVec = { x: (sy - ty) / length, y: (tx - sx) / length };
+      const arcPt = { x: midPt.x + dirVec.x * deviationSize, y: midPt.y + dirVec.y * deviationSize };
+      breakPoints = [arcPt];
+    }
   }
 
   const validType = LINE_TYPES[type] || LINE_TYPES.STRAIGHT;

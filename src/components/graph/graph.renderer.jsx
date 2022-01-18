@@ -41,7 +41,10 @@ function _renderLinks(nodes, links, linksMatrix, config, linkCallbacks, highligh
     const { source, target } = link;
     const sourceId = getId(source);
     const targetId = getId(target);
-    const connects = `${sourceId}${CONST.COORDS_SEPARATOR}${targetId}`;
+    const connects =
+      sourceId < targetId
+        ? `${sourceId}${CONST.COORDS_SEPARATOR}${targetId}`
+        : `${targetId}${CONST.COORDS_SEPARATOR}${sourceId}`;
     parallels[connects] = parallels[connects] || [];
     parallels[connects].push(link);
     return parallels;
@@ -54,9 +57,12 @@ function _renderLinks(nodes, links, linksMatrix, config, linkCallbacks, highligh
       parallels[key].map((link) => {
         const myIdx = idx;
         idx++;
-        const isLoop = getId(link.source) === getId(link.target);
+        const { source, target } = link;
+        const sourceId = getId(source);
+        const targetId = getId(target);
+        const isLoop = sourceId === targetId;
         const trailer = count > 1 ? `${CONST.COORDS_SEPARATOR}${myIdx}` : "";
-        const key = link.id ? link.id : `${key}${trailer}`;
+        const key = link.id ? link.id : `${sourceId}${CONST.COORDS_SEPARATOR}${targetId}${trailer}`;
         return { ...link, id: key, parallelIdx: myIdx, parallelCount: count, isLoop: isLoop };
       })
     );
