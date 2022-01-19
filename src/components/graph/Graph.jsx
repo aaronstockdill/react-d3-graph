@@ -296,7 +296,6 @@ export default class Graph extends React.Component {
     if (!this.state.config.staticGraph) {
       const id = this._nodeIdFromEvent(e);
       let draggedNode = this.state.nodes[id];
-      this.draggedNodeId = id;
 
       if (this.props.onNodeDragStart) {
         const { x, y } = draggedNode;
