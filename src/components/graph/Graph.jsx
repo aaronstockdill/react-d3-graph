@@ -307,8 +307,7 @@ export default class Graph extends React.Component {
       }
 
       if (this.props.onNodeDragStart) {
-        const { x, y } = draggedNode;
-        this.props.onNodeDragStart(e, id, x, y);
+        this.selection.nodes.forEach((node) => this.props.onNodeDragStart(e, node.id, node.x, node.y));
       }
     }
   };
