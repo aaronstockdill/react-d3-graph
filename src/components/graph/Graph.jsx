@@ -222,15 +222,12 @@ export default class Graph extends React.Component {
   _onDragEnd = (e) => {
     this.isDraggingNode = false;
 
-    if (this.state.draggedNode) {
-      if (this.props.onNodeDragEnd) {
-        const { id, x, y } = this.state.draggedNode;
-        this.props.onNodeDragEnd(e, id, x, y);
-      }
-
-      this.onNodePositionChange(this.state.draggedNode);
-      this._tick({ draggedNode: null });
-      this.draggedNode = null;
+    if (this.state.draggedNodes) {
+      this.state.draggedNodes.forEach((node) => {
+        this.props.onNodeDragEnd && this.props.onNodeDragEnd(e, node.id, node.x, node.y);
+        this.onNodePositionChange(node);
+      });
+      this._tick({ draggedNodes: null });
     }
 
     !this.state.config.staticGraph &&
@@ -248,31 +245,39 @@ export default class Graph extends React.Component {
    * @returns {undefined}
    */
   _onDragMove = (e) => {
-    if (!this.state.config.staticGraph && this.draggedNodeId) {
-      // this is where d3 and react bind
-      let draggedNode = this.state.nodes[this.draggedNodeId];
+    const ids = this.selection.nodes;
 
-      draggedNode.oldX = draggedNode.x;
-      draggedNode.oldY = draggedNode.y;
+    if (!this.state.config.staticGraph) {
+      const draggedNodes = ids.flatMap((id) => {
+        // this is where d3 and react bind
+        let draggedNode = this.state.nodes[id];
 
-      const newX = draggedNode.x + e.dx;
-      const newY = draggedNode.y + e.dy;
-      const shouldUpdateNode = !this.state.config.bounded || isPositionInBounds({ x: newX, y: newY }, this.state);
+        draggedNode.oldX = draggedNode.x;
+        draggedNode.oldY = draggedNode.y;
 
-      if (shouldUpdateNode) {
-        draggedNode.x = newX;
-        draggedNode.y = newY;
+        const newX = draggedNode.x + e.dx;
+        const newY = draggedNode.y + e.dy;
+        const shouldUpdateNode = !this.state.config.bounded || isPositionInBounds({ x: newX, y: newY }, this.state);
 
-        // set nodes fixing coords fx and fy
-        draggedNode["fx"] = draggedNode.x;
-        draggedNode["fy"] = draggedNode.y;
+        if (shouldUpdateNode) {
+          draggedNode.x = newX;
+          draggedNode.y = newY;
 
-        this._tick({ draggedNode });
-      }
+          // set nodes fixing coords fx and fy
+          draggedNode["fx"] = draggedNode.x;
+          draggedNode["fy"] = draggedNode.y;
 
-      if (this.props.onNodeDragMove) {
-        this.props.onNodeDragMove(e, draggedNode.id, draggedNode.x, draggedNode.y);
-      }
+          if (this.props.onNodeDragMove) {
+            this.props.onNodeDragMove(e, draggedNode.id, draggedNode.x, draggedNode.y);
+          }
+
+          return [draggedNode];
+        } else {
+          return [];
+        }
+      });
+
+      this._tick({ draggedNodes });
     }
   };
 
