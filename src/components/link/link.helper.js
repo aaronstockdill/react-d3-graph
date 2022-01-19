@@ -100,6 +100,7 @@ function catmullRom(points) {
     const p2 = points[2];
     return smooth3(p0, p1, p2);
   }
+  // https://stackoverflow.com/questions/30748316/catmull-rom-interpolation-on-svg-paths
   const alpha = 0.5;
   const fin = points.length - 1;
   const knots = [0];
@@ -115,6 +116,7 @@ function catmullRom(points) {
       if (i == 0) {
         return `M${x},${y}`;
       } else if (i == 1 || i == fin) {
+        // TODO: Fix first and last segment using knots
         return `T${x},${y}`;
       } else {
         const p0 = points[i - 2];
