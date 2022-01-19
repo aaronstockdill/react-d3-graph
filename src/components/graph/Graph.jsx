@@ -214,9 +214,9 @@ export default class Graph extends React.Component {
   _onDragEnd = () => {
     this.isDraggingNode = false;
 
-    if (this.state.draggedNode) {
-      this.onNodePositionChange(this.state.draggedNode);
-      this._tick({ draggedNode: null });
+    if (this.state.draggedNodes) {
+      this.state.draggedNodes.forEach(this.onNodePositionChange);
+      this._tick({ draggedNodes: null });
     }
 
     !this.state.config.staticGraph &&
@@ -234,29 +234,35 @@ export default class Graph extends React.Component {
    * @returns {undefined}
    */
   _onDragMove = (ev, index, nodeList) => {
-    const id = nodeList[index].id;
+    const ids = this.selection.nodes;
 
     if (!this.state.config.staticGraph) {
-      // this is where d3 and react bind
-      let draggedNode = this.state.nodes[id];
+      const draggedNodes = ids.flatMap((id) => {
+        // this is where d3 and react bind
+        let draggedNode = this.state.nodes[id];
 
-      draggedNode.oldX = draggedNode.x;
-      draggedNode.oldY = draggedNode.y;
+        draggedNode.oldX = draggedNode.x;
+        draggedNode.oldY = draggedNode.y;
 
-      const newX = draggedNode.x + d3Event.dx;
-      const newY = draggedNode.y + d3Event.dy;
-      const shouldUpdateNode = !this.state.config.bounded || isPositionInBounds({ x: newX, y: newY }, this.state);
+        const newX = draggedNode.x + d3Event.dx;
+        const newY = draggedNode.y + d3Event.dy;
+        const shouldUpdateNode = !this.state.config.bounded || isPositionInBounds({ x: newX, y: newY }, this.state);
 
-      if (shouldUpdateNode) {
-        draggedNode.x = newX;
-        draggedNode.y = newY;
+        if (shouldUpdateNode) {
+          draggedNode.x = newX;
+          draggedNode.y = newY;
 
-        // set nodes fixing coords fx and fy
-        draggedNode["fx"] = draggedNode.x;
-        draggedNode["fy"] = draggedNode.y;
+          // set nodes fixing coords fx and fy
+          draggedNode["fx"] = draggedNode.x;
+          draggedNode["fy"] = draggedNode.y;
 
-        this._tick({ draggedNode });
-      }
+          return [draggedNode];
+        } else {
+          return [];
+        }
+      });
+
+      this._tick({ draggedNodes });
     }
   };
 
