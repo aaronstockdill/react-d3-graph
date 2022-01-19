@@ -245,7 +245,7 @@ export default class Graph extends React.Component {
    * @returns {undefined}
    */
   _onDragMove = (e) => {
-    const ids = this.selection.nodes;
+    const ids = Array.from(this.selection.nodes);
 
     if (!this.state.config.staticGraph) {
       const draggedNodes = ids.flatMap((id) => {

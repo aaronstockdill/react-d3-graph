@@ -7,6 +7,14 @@ import { getId } from "./graph.helper";
 import { logError } from "../../utils";
 
 class Selection {
+  nodes;
+  links;
+
+  constructor() {
+    this.nodes = new Set();
+    this.links = new Set();
+  }
+
   linkIsSelected = (linkId) => {
     return this.links.has(linkId);
   };
@@ -47,11 +55,6 @@ class Selection {
   freeze = () => {
     return { nodes: Array.from(this.nodes), links: Array.from(this.links) };
   };
-
-  constructor() {
-    this.nodes = new Set();
-    this.links = new Set();
-  }
 }
 
 export { Selection };
