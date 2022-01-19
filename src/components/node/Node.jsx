@@ -55,16 +55,17 @@ import { logWarning } from "../../utils";
 export default class Node extends React.Component {
   /**
    * Handle click on the node.
+   * @param {Object} event - native event.
    * @returns {undefined}
    */
-  handleOnClickNode = () => this.props.onClickNode && this.props.onClickNode(this.props.id);
+  handleOnClickNode = (event) => this.props.onClickNode && this.props.onClickNode(event, this.props.id);
 
   /**
    * Handle right click on the node.
    * @param {Object} event - native event.
    * @returns {undefined}
    */
-  handleOnRightClickNode = event => this.props.onRightClickNode && this.props.onRightClickNode(event, this.props.id);
+  handleOnRightClickNode = (event) => this.props.onRightClickNode && this.props.onRightClickNode(event, this.props.id);
 
   /**
    * Handle mouse over node event.
