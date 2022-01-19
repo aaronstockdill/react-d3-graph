@@ -297,6 +297,15 @@ export default class Graph extends React.Component {
       const id = this._nodeIdFromEvent(e);
       let draggedNode = this.state.nodes[id];
 
+      if (!this.selection.nodeIsSelected(id)) {
+        const oldSelection = this.selection.freeze();
+        if (!e.sourceEvent.shiftKey) {
+          this.selection.clear();
+        }
+        this.selection.addNode(id);
+        this.onSelectionChange(oldSelection, this.selection.freeze());
+      }
+
       if (this.props.onNodeDragStart) {
         const { x, y } = draggedNode;
         this.props.onNodeDragStart(e, id, x, y);
