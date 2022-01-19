@@ -12,7 +12,7 @@ class Selection {
   };
 
   nodeIsSelected = (nodeId) => {
-    return this.nodes.has(linkId);
+    return this.nodes.has(nodeId);
   };
 
   addLinks = (linkIds) => {
@@ -20,7 +20,7 @@ class Selection {
   };
 
   addLink = (linkId) => {
-    this.addLinksToSelection([linkId]);
+    this.addLinks([linkId]);
   };
 
   addNodes = (nodeIds) => {
@@ -28,7 +28,7 @@ class Selection {
   };
 
   addNode = (nodeId) => {
-    this.addNodesToSelection([nodeId]);
+    this.addNodes([nodeId]);
   };
 
   removeLink = (linkId) => {
@@ -45,12 +45,12 @@ class Selection {
   };
 
   freeze = () => {
-    return { nodes: Array(this.nodes), links: Array(this.links) };
+    return { nodes: Array.from(this.nodes), links: Array.from(this.links) };
   };
 
   constructor() {
-    this.nodes = Set();
-    this.links = Set();
+    this.nodes = new Set();
+    this.links = new Set();
   }
 }
 

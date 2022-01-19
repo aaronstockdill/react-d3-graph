@@ -372,7 +372,7 @@ export default class Graph extends React.Component {
       this.setState({ enableFocusAnimation: false });
     }
 
-    if (!e.shiftKey()) {
+    if (!e.shiftKey) {
       const oldSelection = this.selection.freeze();
       this.selection.clear();
       this.onSelectionChange(oldSelection, this.selection.freeze());
@@ -426,7 +426,7 @@ export default class Graph extends React.Component {
             },
             () => {
               const oldSelection = this.selection.freeze();
-              if (!event.shiftKey()) {
+              if (!event.shiftKey) {
                 this.selection.clear();
               }
               this.selection.addNode(clickedNodeId);
@@ -441,7 +441,7 @@ export default class Graph extends React.Component {
           );
         } else {
           const oldSelection = this.selection.freeze();
-          if (!event.shiftKey()) {
+          if (!event.shiftKey) {
             this.selection.clear();
           }
           this.selection.addNode(clickedNodeId);
@@ -508,7 +508,7 @@ export default class Graph extends React.Component {
    */
   onClickLink = (event, link) => {
     const oldSelection = this.selection.freeze();
-    if (!event.shiftKey()) {
+    if (!event.shiftKey) {
       this.selection.clear();
     }
     this.selection.addLink(link.id);
