@@ -725,7 +725,8 @@ export default class Graph extends React.Component {
       this.state.config,
       this.state.highlightedNode,
       this.state.highlightedLink,
-      this.state.transform.k
+      this.state.transform.k,
+      this.selection
     );
 
     const svgStyle = {

@@ -50,10 +50,21 @@ function _getNodeOpacity(node, highlightedNode, highlightedLink, config) {
  * @param  {string} highlightedNode - same as {@link #graphrenderer|highlightedNode in renderGraph}.
  * @param  {Object} highlightedLink - same as {@link #graphrenderer|highlightedLink in renderGraph}.
  * @param  {number} transform - value that indicates the amount of zoom transformation.
+ * @param  {bool} selected - is the link in the user selection?
  * @returns {Object} returns an object that aggregates all props for creating respective Link component instance.
  * @memberof Graph/builder
  */
-function buildLinkProps(link, nodes, links, config, linkCallbacks, highlightedNode, highlightedLink, transform) {
+function buildLinkProps(
+  link,
+  nodes,
+  links,
+  config,
+  linkCallbacks,
+  highlightedNode,
+  highlightedLink,
+  transform,
+  selected
+) {
   const { source, target } = link;
   let x1 = nodes?.[source]?.x || 0;
   let y1 = nodes?.[source]?.y || 0;
@@ -154,6 +165,7 @@ function buildLinkProps(link, nodes, links, config, linkCallbacks, highlightedNo
     markerId,
     mouseCursor: config.link.mouseCursor,
     opacity,
+    selected,
     source,
     stroke,
     strokeWidth,
@@ -176,10 +188,11 @@ function buildLinkProps(link, nodes, links, config, linkCallbacks, highlightedNo
  * @param  {string} highlightedNode - same as {@link #graphrenderer|highlightedNode in renderGraph}.
  * @param  {Object} highlightedLink - same as {@link #graphrenderer|highlightedLink in renderGraph}.
  * @param  {number} transform - value that indicates the amount of zoom transformation.
+ * @param  {bool} selected - is the node in the user selection?
  * @returns {Object} returns object that contain Link props ready to be feeded to the Link component.
  * @memberof Graph/builder
  */
-function buildNodeProps(node, config, nodeCallbacks = {}, highlightedNode, highlightedLink, transform) {
+function buildNodeProps(node, config, nodeCallbacks = {}, highlightedNode, highlightedLink, transform, selected) {
   const highlight =
     node.highlighted ||
     node.id === (highlightedLink && highlightedLink.source) ||
@@ -260,6 +273,7 @@ function buildNodeProps(node, config, nodeCallbacks = {}, highlightedNode, highl
     overrideGlobalViewGenerator: !node.viewGenerator && node.svg,
     renderLabel,
     labelClass,
+    selected,
     size: isSizeNumericValue ? nodeSize * t : { height: nodeSize.height * t, width: nodeSize.width * t },
     stroke,
     strokeWidth: strokeWidth * t,
