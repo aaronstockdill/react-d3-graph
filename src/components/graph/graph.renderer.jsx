@@ -29,7 +29,17 @@ import { getMarkerSize } from "../marker/marker.helper";
  * @returns {Array.<Object>} returns the generated array of Link components.
  * @memberof Graph/renderer
  */
-function _renderLinks(nodes, links, linksMatrix, config, linkCallbacks, highlightedNode, highlightedLink, transform) {
+function _renderLinks(
+  nodes,
+  links,
+  linksMatrix,
+  config,
+  linkCallbacks,
+  highlightedNode,
+  highlightedLink,
+  transform,
+  selection
+) {
   let outLinks = links;
 
   if (config.collapsible) {
@@ -82,7 +92,8 @@ function _renderLinks(nodes, links, linksMatrix, config, linkCallbacks, highligh
       linkCallbacks,
       `${highlightedNode}`,
       highlightedLink,
-      transform
+      transform,
+      selection.linkIsSelected(key)
     );
 
     return <Link key={key} id={key} {...props} />;
@@ -103,7 +114,16 @@ function _renderLinks(nodes, links, linksMatrix, config, linkCallbacks, highligh
  * @returns {Array.<Object>} returns the generated array of node components
  * @memberof Graph/renderer
  */
-function _renderNodes(nodes, nodeCallbacks, config, highlightedNode, highlightedLink, transform, linksMatrix) {
+function _renderNodes(
+  nodes,
+  nodeCallbacks,
+  config,
+  highlightedNode,
+  highlightedLink,
+  transform,
+  selection,
+  linksMatrix
+) {
   let outNodes = Object.keys(nodes);
 
   if (config.collapsible) {
@@ -117,7 +137,8 @@ function _renderNodes(nodes, nodeCallbacks, config, highlightedNode, highlighted
       nodeCallbacks,
       highlightedNode,
       highlightedLink,
-      transform
+      transform,
+      selection.nodeIsSelected(nodeId)
     );
 
     return <Node key={nodeId} {...props} />;
@@ -212,6 +233,7 @@ const _memoizedRenderDefs = _renderDefs();
  * @param  {string} highlightedLink.source - id of source node for highlighted link.
  * @param  {string} highlightedLink.target - id of target node for highlighted link.
  * @param  {number} transform - value that indicates the amount of zoom transformation.
+ * @param  {Object} selection - the current user selection.
  * @returns {Object} returns an object containing the generated nodes and links that form the graph.
  * @memberof Graph/renderer
  */
@@ -224,11 +246,31 @@ function renderGraph(
   config,
   highlightedNode,
   highlightedLink,
-  transform
+  transform,
+  selection
 ) {
   return {
-    nodes: _renderNodes(nodes, nodeCallbacks, config, highlightedNode, highlightedLink, transform, linksMatrix),
-    links: _renderLinks(nodes, links, linksMatrix, config, linkCallbacks, highlightedNode, highlightedLink, transform),
+    nodes: _renderNodes(
+      nodes,
+      nodeCallbacks,
+      config,
+      highlightedNode,
+      highlightedLink,
+      transform,
+      selection,
+      linksMatrix
+    ),
+    links: _renderLinks(
+      nodes,
+      links,
+      linksMatrix,
+      config,
+      linkCallbacks,
+      highlightedNode,
+      highlightedLink,
+      transform,
+      selection
+    ),
     defs: _memoizedRenderDefs(config),
   };
 }

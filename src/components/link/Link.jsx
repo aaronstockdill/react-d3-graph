@@ -40,31 +40,31 @@ import React from "react";
 export default class Link extends React.Component {
   /**
    * Handle link click event.
+   * @param {Object} event - native event.
    * @returns {undefined}
    */
-  handleOnClickLink = event =>
-    this.props.onClickLink && this.props.onClickLink(event, this.props.source, this.props.target);
+  handleOnClickLink = (event) => this.props.onClickLink && this.props.onClickLink(event, this.props);
 
   /**
    * Handle link right click event.
    * @param {Object} event - native event.
    * @returns {undefined}
    */
-  handleOnRightClickLink = event =>
+  handleOnRightClickLink = (event) =>
     this.props.onRightClickLink && this.props.onRightClickLink(event, this.props.source, this.props.target);
 
   /**
    * Handle mouse over link event.
    * @returns {undefined}
    */
-  handleOnMouseOverLink = event =>
+  handleOnMouseOverLink = (event) =>
     this.props.onMouseOverLink && this.props.onMouseOverLink(event, this.props.source, this.props.target);
 
   /**
    * Handle mouse out link event.
    * @returns {undefined}
    */
-  handleOnMouseOutLink = event =>
+  handleOnMouseOutLink = (event) =>
     this.props.onMouseOutLink && this.props.onMouseOutLink(event, this.props.source, this.props.target);
 
   render() {
