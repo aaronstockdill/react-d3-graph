@@ -270,12 +270,26 @@ export default class Graph extends React.Component {
    * Handles d3 drag 'start' event.
    * @returns {undefined}
    */
-  _onDragStart = () => {
+  _onDragStart = (ev, index, nodeList) => {
     this.isDraggingNode = true;
     this.pauseSimulation();
 
     if (this.state.enableFocusAnimation) {
       this.setState({ enableFocusAnimation: false });
+    }
+
+    if (!this.state.config.staticGraph) {
+      const id = nodesList[index].id;
+      let draggedNode = this.state.nodes[id];
+
+      if (!this.selection.nodeIsSelected(id)) {
+        const oldSelection = this.selection.freeze();
+        if (!ev.sourceEvent.shiftKey) {
+          this.selection.clear();
+        }
+        this.selection.addNode(id);
+        this.onSelectionChange(oldSelection, this.selection.freeze());
+      }
     }
   };
 
