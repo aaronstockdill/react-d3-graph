@@ -125,11 +125,7 @@ export default class Node extends React.Component {
       if (this.props.viewGenerator && !this.props.overrideGlobalViewGenerator) {
         node = (
           <svg {...nodeProps} width={width} height={height}>
-            <foreignObject x="0" y="0" width="100%" height="100%">
-              <section style={{ height, width, backgroundColor: "transparent" }}>
-                {this.props.viewGenerator(this.props)}
-              </section>
-            </foreignObject>
+            {this.props.viewGenerator(this.props)}
           </svg>
         );
       } else {
