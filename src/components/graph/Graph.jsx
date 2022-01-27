@@ -2,7 +2,7 @@ import React from "react";
 
 import { drag as d3Drag } from "d3-drag";
 import { forceLink as d3ForceLink } from "d3-force";
-import { select as d3Select, selectAll as d3SelectAll } from "d3-selection";
+import { select as d3Select, selectAll as d3SelectAll, pointer as d3Pointer } from "d3-selection";
 import { zoom as d3Zoom } from "d3-zoom";
 
 import CONST from "./graph.const";
@@ -586,6 +586,46 @@ export default class Graph extends React.Component {
     }
   };
 
+  onKeyDown = (ev) => {
+    if (!this.props.keybindings || !this.state.activeKeybindings) {
+      return;
+    }
+    function keyname(e) {
+      const ctrl = e.ctrlKey ? "Ctrl+" : "";
+      const alt = e.altKey ? "Alt+" : "";
+      const shift = e.shiftKey ? "Shift+" : "";
+      const letter = e.key;
+      return ctrl + alt + shift + letter;
+    }
+    (
+      this.props.keybindings[keyname(ev)] ||
+      function (_) {
+        return;
+      }
+    )(ev, this.mousePosition[0], this.mousePosition[1]);
+  };
+
+  enableKeybindings = () => {
+    document.querySelector(`#svg-container-${this.state.id}`).focus();
+    this.setState({ activeKeybindings: true });
+  };
+
+  disableKeybindings = () => {
+    document.querySelector(`#svg-container-${this.state.id}`).blur();
+    this.setState({ activeKeybindings: false });
+  };
+
+  updateMousePosition = (event) => {
+    this.mousePosition = d3Pointer(event);
+  };
+
+  _mouseConfig() {
+    d3Select(`#svg-container-${this.state.id}`)
+      .on("mousemove", this.updateMousePosition)
+      .on("mouseover", this.enableKeybindings)
+      .on("mouseout", this.disableKeybindings);
+  }
+
   /**
    * Calls d3 simulation.stop().<br/>
    * {@link https://github.com/d3/d3-force#simulation_stop}
@@ -639,8 +679,10 @@ export default class Graph extends React.Component {
 
     this.focusAnimationTimeout = null;
     this.nodeClickTimer = null;
+    this.mousePosition = [0, 0];
     this.isDraggingNode = false;
     this.selection = new Selection();
+    this.state = { activeKeybindings: false };
     this.state = initializeGraphState(this.props, this.state);
     this.debouncedOnZoomChange = this.props.onZoomChange ? debounce(this.props.onZoomChange, 100) : null;
   }
@@ -727,6 +769,7 @@ export default class Graph extends React.Component {
 
     // graph zoom and drag&drop all network
     this._zoomConfig();
+    this._mouseConfig();
   }
 
   componentWillUnmount() {
@@ -769,6 +812,7 @@ export default class Graph extends React.Component {
     );
 
     const svgStyle = {
+      outline: "none !important",
       height: this.state.config.height,
       width: this.state.config.width,
     };
@@ -776,8 +820,15 @@ export default class Graph extends React.Component {
     const containerProps = this._generateFocusAnimationProps();
 
     return (
-      <div id={`${this.state.id}-${CONST.GRAPH_WRAPPER_ID}`}>
-        <svg name={`svg-container-${this.state.id}`} style={svgStyle} onClick={this.onClickGraph}>
+      <div id={`${this.state.id}-${CONST.GRAPH_WRAPPER_ID}`} style={this.props.style}>
+        <svg
+          name={`svg-container-${this.state.id}`}
+          id={`svg-container-${this.state.id}`}
+          style={svgStyle}
+          tabIndex={"0"}
+          onClick={this.onClickGraph}
+          onKeyDown={this.onKeyDown}
+        >
           {defs}
           <g id={`${this.state.id}-${CONST.GRAPH_CONTAINER_ID}`} {...containerProps}>
             {links}
