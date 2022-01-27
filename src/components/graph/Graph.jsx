@@ -224,7 +224,6 @@ export default class Graph extends React.Component {
 
     if (this.state.draggedNodes) {
       this.state.draggedNodes.forEach((node) => {
-        this.props.onNodeDragEnd && this.props.onNodeDragEnd(e, node.id, node.x, node.y);
         this.onNodePositionChange(node);
       });
       this._tick({ draggedNodes: null });
@@ -267,10 +266,6 @@ export default class Graph extends React.Component {
           draggedNode["fx"] = draggedNode.x;
           draggedNode["fy"] = draggedNode.y;
 
-          if (this.props.onNodeDragMove) {
-            this.props.onNodeDragMove(e, draggedNode.id, draggedNode.x, draggedNode.y);
-          }
-
           return [draggedNode];
         } else {
           return [];
@@ -304,10 +299,6 @@ export default class Graph extends React.Component {
         }
         this.selection.addNode(id);
         this.onSelectionChange(oldSelection, this.selection.freeze());
-      }
-
-      if (this.props.onNodeDragStart) {
-        this.selection.nodes.forEach((node) => this.props.onNodeDragStart(e, node.id, node.x, node.y));
       }
     }
   };
