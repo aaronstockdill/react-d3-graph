@@ -732,7 +732,7 @@ export default class Graph extends React.Component {
     );
 
     const svgStyle = {
-      outline: "none !important",
+      outline: "none",
       height: this.state.config.height,
       width: this.state.config.width,
     };
