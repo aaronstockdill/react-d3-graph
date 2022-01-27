@@ -2,7 +2,7 @@ import React from "react";
 
 import { drag as d3Drag } from "d3-drag";
 import { forceLink as d3ForceLink } from "d3-force";
-import { select as d3Select, selectAll as d3SelectAll, event as d3Event } from "d3-selection";
+import { select as d3Select, selectAll as d3SelectAll, event as d3Event, pointer as d3Pointer } from "d3-selection";
 import { zoom as d3Zoom } from "d3-zoom";
 
 import CONST from "./graph.const";
@@ -163,7 +163,7 @@ export default class Graph extends React.Component {
    */
   _graphLinkForceConfig() {
     const forceLink = d3ForceLink(this.state.d3Links)
-      .id(l => l.id)
+      .id((l) => l.id)
       .distance(this.state.config.d3.linkLength)
       .strength(this.state.config.d3.linkStrength);
 
@@ -181,9 +181,7 @@ export default class Graph extends React.Component {
       .on("drag", this._onDragMove)
       .on("end", this._onDragEnd);
 
-    d3Select(`#${this.state.id}-${CONST.GRAPH_WRAPPER_ID}`)
-      .selectAll(".node")
-      .call(customNodeDrag);
+    d3Select(`#${this.state.id}-${CONST.GRAPH_WRAPPER_ID}`).selectAll(".node").call(customNodeDrag);
   }
 
   /**
@@ -341,7 +339,7 @@ export default class Graph extends React.Component {
    * @param  {Object} e - The event of onClick handler.
    * @returns {undefined}
    */
-  onClickGraph = e => {
+  onClickGraph = (e) => {
     if (this.state.enableFocusAnimation) {
       this.setState({ enableFocusAnimation: false });
     }
@@ -363,7 +361,7 @@ export default class Graph extends React.Component {
    * @param  {string} clickedNodeId - The id of the node where the click was performed.
    * @returns {undefined}
    */
-  onClickNode = clickedNodeId => {
+  onClickNode = (clickedNodeId) => {
     const clickedNode = this.state.nodes[clickedNodeId];
     if (!this.nodeClickTimer) {
       // Note: onDoubleClickNode is not defined we don't need a long wait
@@ -426,7 +424,7 @@ export default class Graph extends React.Component {
    * @param  {string} id - id of the node that participates in the event.
    * @returns {undefined}
    */
-  onMouseOverNode = id => {
+  onMouseOverNode = (id) => {
     if (this.isDraggingNode) {
       return;
     }
@@ -442,7 +440,7 @@ export default class Graph extends React.Component {
    * @param  {string} id - id of the node that participates in the event.
    * @returns {undefined}
    */
-  onMouseOutNode = id => {
+  onMouseOutNode = (id) => {
     if (this.isDraggingNode) {
       return;
     }
@@ -490,7 +488,7 @@ export default class Graph extends React.Component {
    * @param {Object} node - an object holding information about the dragged node.
    * @returns {undefined}
    */
-  onNodePositionChange = node => {
+  onNodePositionChange = (node) => {
     if (!this.props.onNodePositionChange) {
       return;
     }
@@ -499,6 +497,56 @@ export default class Graph extends React.Component {
 
     this.props.onNodePositionChange(id, x, y);
   };
+
+  onSelectionChange = (oldSelection, newSelection) => {
+    if (!this.props.onSelectionChange) {
+      return;
+    }
+
+    if (oldSelection != newSelection) {
+      this.props.onSelectionChange(oldSelection, newSelection);
+    }
+  };
+
+  onKeyDown = (ev) => {
+    if (!this.props.keybindings || !this.state.activeKeybindings) {
+      return;
+    }
+    function keyname(e) {
+      const ctrl = e.ctrlKey ? "Ctrl+" : "";
+      const alt = e.altKey ? "Alt+" : "";
+      const shift = e.shiftKey ? "Shift+" : "";
+      const letter = e.key;
+      return ctrl + alt + shift + letter;
+    }
+    (
+      this.props.keybindings[keyname(ev)] ||
+      function (_) {
+        return;
+      }
+    )(ev, this.mousePosition[0], this.mousePosition[1]);
+  };
+
+  enableKeybindings = () => {
+    document.querySelector(`#svg-container-${this.state.id}`).focus();
+    this.setState({ activeKeybindings: true });
+  };
+
+  disableKeybindings = () => {
+    document.querySelector(`#svg-container-${this.state.id}`).blur();
+    this.setState({ activeKeybindings: false });
+  };
+
+  updateMousePosition = (event) => {
+    this.mousePosition = d3Pointer(event);
+  };
+
+  _mouseConfig() {
+    d3Select(`#svg-container-${this.state.id}`)
+      .on("mousemove", this.updateMousePosition)
+      .on("mouseover", this.enableKeybindings)
+      .on("mouseout", this.disableKeybindings);
+  }
 
   /**
    * Calls d3 simulation.stop().<br/>
@@ -553,7 +601,9 @@ export default class Graph extends React.Component {
 
     this.focusAnimationTimeout = null;
     this.nodeClickTimer = null;
+    this.mousePosition = [0, 0];
     this.isDraggingNode = false;
+    this.state = { activeKeybindings: false };
     this.state = initializeGraphState(this.props, this.state);
     this.debouncedOnZoomChange = this.props.onZoomChange ? debounce(this.props.onZoomChange, 100) : null;
   }
@@ -582,7 +632,7 @@ export default class Graph extends React.Component {
     const transform =
       newConfig.panAndZoom !== this.state.config.panAndZoom ? { x: 0, y: 0, k: 1 } : this.state.transform;
     const focusedNodeId = nextProps.data.focusedNodeId;
-    const d3FocusedNode = this.state.d3Nodes.find(node => `${node.id}` === `${focusedNodeId}`);
+    const d3FocusedNode = this.state.d3Nodes.find((node) => `${node.id}` === `${focusedNodeId}`);
     const containerElId = `${this.state.id}-${CONST.GRAPH_WRAPPER_ID}`;
     const focusTransformation =
       getCenterAndZoomTransformation(d3FocusedNode, this.state.config, containerElId) || this.state.focusTransformation;
@@ -640,6 +690,7 @@ export default class Graph extends React.Component {
 
     // graph zoom and drag&drop all network
     this._zoomConfig();
+    this._mouseConfig();
   }
 
   componentWillUnmount() {
@@ -681,6 +732,7 @@ export default class Graph extends React.Component {
     );
 
     const svgStyle = {
+      outline: "none !important",
       height: this.state.config.height,
       width: this.state.config.width,
     };
@@ -688,8 +740,15 @@ export default class Graph extends React.Component {
     const containerProps = this._generateFocusAnimationProps();
 
     return (
-      <div id={`${this.state.id}-${CONST.GRAPH_WRAPPER_ID}`}>
-        <svg name={`svg-container-${this.state.id}`} style={svgStyle} onClick={this.onClickGraph}>
+      <div id={`${this.state.id}-${CONST.GRAPH_WRAPPER_ID}`} style={this.props.style}>
+        <svg
+          name={`svg-container-${this.state.id}`}
+          id={`svg-container-${this.state.id}`}
+          style={svgStyle}
+          tabIndex={"0"}
+          onClick={this.onClickGraph}
+          onKeyDown={this.onKeyDown}
+        >
           {defs}
           <g id={`${this.state.id}-${CONST.GRAPH_CONTAINER_ID}`} {...containerProps}>
             {links}
