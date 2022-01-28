@@ -588,12 +588,14 @@ export default class Graph extends React.Component {
       const letter = e.key;
       return ctrl + alt + shift + letter;
     }
+    const x = (this.mousePosition[0] - this.state.transform.x) / this.state.transform.k;
+    const y = (this.mousePosition[1] - this.state.transform.y) / this.state.transform.k;
     (
       this.props.keybindings[keyname(ev)] ||
       function (_) {
         return;
       }
-    )(ev, this.mousePosition[0], this.mousePosition[1]);
+    )(ev, x, y);
   };
 
   enableKeybindings = () => {
@@ -699,8 +701,9 @@ export default class Graph extends React.Component {
     // in order to properly update graph data we need to pause eventual d3 ongoing animations
     newGraphElements && this.pauseSimulation();
 
-    const transform =
-      newConfig.panAndZoom !== this.state.config.panAndZoom ? { x: 0, y: 0, k: 1 } : this.state.transform;
+    // const transform =
+    //   newConfig.panAndZoom !== this.state.config.panAndZoom ? { x: 0, y: 0, k: 1 } : this.state.transform;
+    const transform = this.state.transform;
     const focusedNodeId = nextProps.data.focusedNodeId;
     const d3FocusedNode = this.state.d3Nodes.find((node) => `${node.id}` === `${focusedNodeId}`);
     const containerElId = `${this.state.id}-${CONST.GRAPH_WRAPPER_ID}`;
