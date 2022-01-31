@@ -213,6 +213,7 @@ export default class Graph extends React.Component {
    */
   _onDragEnd = () => {
     this.isDraggingNode = false;
+    this.isReallyDraggingNode = false;
 
     if (this.state.draggedNodes) {
       this.state.draggedNodes.forEach(this.onNodePositionChange);
@@ -236,7 +237,7 @@ export default class Graph extends React.Component {
   _onDragMove = (ev, index, nodeList) => {
     const ids = Array.from(this.selection.nodes);
 
-    if (!this.state.config.staticGraph) {
+    if (!this.state.config.staticGraph && this.isReallyDraggingNode) {
       const draggedNodes = ids.flatMap((id) => {
         // this is where d3 and react bind
         let draggedNode = this.state.nodes[id];
@@ -272,6 +273,7 @@ export default class Graph extends React.Component {
    */
   _onDragStart = (ev, index, nodeList) => {
     this.isDraggingNode = true;
+    this.isReallyDraggingNode = false;
     this.pauseSimulation();
 
     if (this.state.enableFocusAnimation) {
@@ -284,6 +286,7 @@ export default class Graph extends React.Component {
 
       setTimeout(() => {
         if (this.isDraggingNode) {
+          this.isReallyDraggingNode = true;
           if (!this.selection.nodeIsSelected(id)) {
             const oldSelection = this.selection.freeze();
             if (!ev.sourceEvent.shiftKey) {
@@ -625,6 +628,7 @@ export default class Graph extends React.Component {
     this.focusAnimationTimeout = null;
     this.nodeClickTimer = null;
     this.isDraggingNode = false;
+    this.isReallyDraggingNode = false;
     this.selection = new Selection();
     if (this.props.selection) {
       this.selection.update(this.props.selection);
