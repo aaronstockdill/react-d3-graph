@@ -581,7 +581,7 @@ export default class Graph extends React.Component {
     }
   };
 
-  onKeyDown = (ev) => {
+  onKeyUp = (ev) => {
     if (!this.props.keybindings || !this.state.activeKeybindings) {
       return;
     }
@@ -832,7 +832,7 @@ export default class Graph extends React.Component {
           style={svgStyle}
           tabIndex={"0"}
           onClick={this.onClickGraph}
-          onKeyDown={this.onKeyDown}
+          onKeyUp={this.onKeyUp}
         >
           {defs}
           <g id={`${this.state.id}-${CONST.GRAPH_CONTAINER_ID}`} {...containerProps}>
