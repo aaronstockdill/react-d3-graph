@@ -292,14 +292,18 @@ export default class Graph extends React.Component {
       const id = this._nodeIdFromEvent(e);
       let draggedNode = this.state.nodes[id];
 
-      if (!this.selection.nodeIsSelected(id)) {
-        const oldSelection = this.selection.freeze();
-        if (!e.sourceEvent.shiftKey) {
-          this.selection.clear();
+      setTimeout(() => {
+        if (this.isDraggingNode) {
+          if (!this.selection.nodeIsSelected(id)) {
+            const oldSelection = this.selection.freeze();
+            if (!e.sourceEvent.shiftKey) {
+              this.selection.clear();
+            }
+            this.selection.addNode(id);
+            this.onSelectionChange(oldSelection, this.selection.freeze());
+          }
         }
-        this.selection.addNode(id);
-        this.onSelectionChange(oldSelection, this.selection.freeze());
-      }
+      }, CONST.TTL_DRAGDETECT_IN_MS);
     }
   };
 
@@ -375,12 +379,6 @@ export default class Graph extends React.Component {
       this.setState({ enableFocusAnimation: false });
     }
 
-    if (!e.shiftKey) {
-      const oldSelection = this.selection.freeze();
-      this.selection.clear();
-      this.onSelectionChange(oldSelection, this.selection.freeze());
-    }
-
     // Only trigger the graph onClickHandler, if not clicked a node or link.
     // toUpperCase() is added as a precaution, as the documentation says tagName should always
     // return in UPPERCASE, but chrome returns lowercase
@@ -390,6 +388,12 @@ export default class Graph extends React.Component {
 
     if (tagName.toUpperCase() === "SVG" && name === svgContainerName) {
       this.props.onClickGraph && this.props.onClickGraph(e);
+
+      if (!e.shiftKey) {
+        const oldSelection = this.selection.freeze();
+        this.selection.clear();
+        this.onSelectionChange(oldSelection, this.selection.freeze());
+      }
     }
   };
 
@@ -432,7 +436,7 @@ export default class Graph extends React.Component {
               if (!event.shiftKey) {
                 this.selection.clear();
               }
-              this.selection.addNode(clickedNodeId);
+              this.selection.toggleNode(clickedNodeId);
               this.onSelectionChange(oldSelection, this.selection.freeze());
 
               this.props.onClickNode && this.props.onClickNode(event, clickedNodeId, clickedNode);
@@ -447,7 +451,7 @@ export default class Graph extends React.Component {
           if (!event.shiftKey) {
             this.selection.clear();
           }
-          this.selection.addNode(clickedNodeId);
+          this.selection.toggleNode(clickedNodeId);
           this.onSelectionChange(oldSelection, this.selection.freeze());
 
           this.props.onClickNode && this.props.onClickNode(event, clickedNodeId, clickedNode);
@@ -514,7 +518,7 @@ export default class Graph extends React.Component {
     if (!event.shiftKey) {
       this.selection.clear();
     }
-    this.selection.addLink(link.id);
+    this.selection.toggleLink(link.id);
     this.onSelectionChange(oldSelection, this.selection.freeze());
 
     this.props.onClickLink && this.props.onClickLink(link.source, link.target);
@@ -675,6 +679,9 @@ export default class Graph extends React.Component {
     this.mousePosition = [0, 0];
     this.isDraggingNode = false;
     this.selection = new Selection();
+    if (this.props.selection) {
+      this.selection.update(this.props.selection);
+    }
     this.state = { activeKeybindings: false };
     this.state = initializeGraphState(this.props, this.state);
     this.debouncedOnZoomChange = this.props.onZoomChange ? debounce(this.props.onZoomChange, 100) : null;
@@ -715,6 +722,10 @@ export default class Graph extends React.Component {
     // this is because this function gets called in very rapid succession when zooming
     if (nextProps.onZoomChange) {
       this.debouncedOnZoomChange = debounce(nextProps.onZoomChange, 100);
+    }
+
+    if (nextProps.selection) {
+      this.selection.update(nextProps.selection);
     }
 
     this.setState({
