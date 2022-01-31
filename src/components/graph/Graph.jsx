@@ -626,6 +626,10 @@ export default class Graph extends React.Component {
     this.nodeClickTimer = null;
     this.isDraggingNode = false;
     this.selection = new Selection();
+    if (this.props.selection) {
+      this.selection.update(this.props.selection);
+    }
+    this.state = { activeKeybindings: false };
     this.state = initializeGraphState(this.props, this.state);
     this.debouncedOnZoomChange = this.props.onZoomChange ? debounce(this.props.onZoomChange, 100) : null;
   }
@@ -664,6 +668,10 @@ export default class Graph extends React.Component {
     // this is because this function gets called in very rapid succession when zooming
     if (nextProps.onZoomChange) {
       this.debouncedOnZoomChange = debounce(nextProps.onZoomChange, 100);
+    }
+
+    if (nextProps.selection) {
+      this.selection.update(nextProps.selection);
     }
 
     this.setState({

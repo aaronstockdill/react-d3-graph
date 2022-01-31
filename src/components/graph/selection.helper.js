@@ -15,6 +15,11 @@ class Selection {
     this.links = new Set();
   }
 
+  update = (other) => {
+    this.nodes = new Set(other.nodes);
+    this.links = new Set(other.links);
+  };
+
   linkIsSelected = (linkId) => {
     return this.links.has(linkId);
   };
@@ -45,6 +50,14 @@ class Selection {
 
   removeNode = (nodeId) => {
     this.nodes.delete(nodeId);
+  };
+
+  toggleLink = (linkId) => {
+    this.linkIsSelected(linkId) ? this.removeLink(linkId) : this.addLink(linkId);
+  };
+
+  toggleNode = (nodeId) => {
+    this.nodeIsSelected(nodeId) ? this.removeNode(nodeId) : this.addNode(nodeId);
   };
 
   clear = () => {
