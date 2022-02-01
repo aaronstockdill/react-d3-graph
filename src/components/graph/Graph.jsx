@@ -840,8 +840,8 @@ export default class Graph extends React.Component {
         >
           {defs}
           <g id={`${this.state.id}-${CONST.GRAPH_CONTAINER_ID}`} {...containerProps}>
-            {links}
             {nodes}
+            {links}
           </g>
         </svg>
       </div>
