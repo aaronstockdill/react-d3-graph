@@ -234,7 +234,24 @@ export default class Graph extends React.Component {
    * node contains all information that was previously fed by rd3g.
    * @returns {undefined}
    */
-  _onDragMove = (ev, index, nodeList) => {
+  _onDragMove = (e) => {
+    let triggerDrag = (e.x + this.dragStartCoords[0]) ** 2 + (e.y + this.dragStartCoords[1]) ** 2 > 30;
+    if (!this.isReallyDraggingNode && triggerDrag) {
+      if (!this.state.config.staticGraph && this.isDraggingNode) {
+        const id = this._nodeIdFromEvent(e);
+        let draggedNode = this.state.nodes[id];
+        this.isReallyDraggingNode = true;
+        if (!this.selection.nodeIsSelected(id)) {
+          const oldSelection = this.selection.freeze();
+          if (!e.sourceEvent.shiftKey) {
+            this.selection.clear();
+          }
+          this.selection.addNode(id);
+          this.onSelectionChange(oldSelection, this.selection.freeze());
+        }
+      }
+    }
+
     const ids = Array.from(this.selection.nodes);
 
     if (!this.state.config.staticGraph && this.isReallyDraggingNode) {
@@ -274,6 +291,7 @@ export default class Graph extends React.Component {
   _onDragStart = (ev, index, nodeList) => {
     this.isDraggingNode = true;
     this.isReallyDraggingNode = false;
+    this.dragStartCoords = [e.x, e.y];
     this.pauseSimulation();
 
     if (this.state.enableFocusAnimation) {
