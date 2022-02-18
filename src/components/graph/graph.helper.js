@@ -35,7 +35,7 @@ import ERRORS from "../../err";
 import { isDeepEqual, isEmptyObject, merge, pick, antiPick, throwErr, logWarning } from "../../utils";
 import { computeNodeDegree } from "./collapse.helper";
 
-const NODE_PROPS_WHITELIST = ["id", "highlighted", "x", "y", "index", "vy", "vx"];
+const NODE_PROPS_WHITELIST = ["id", "highlighted", "index", "vy", "vx"];
 const LINK_PROPS_WHITELIST = ["index", "source", "target", "isHidden"];
 
 /**
@@ -54,10 +54,7 @@ function _createForceSimulation(width, height, gravity) {
   const fry = d3ForceY(height / 2).strength(CONST.FORCE_Y);
   const forceStrength = gravity;
 
-  return d3ForceSimulation()
-    .force("charge", d3ForceManyBody().strength(forceStrength))
-    .force("x", frx)
-    .force("y", fry);
+  return d3ForceSimulation().force("charge", d3ForceManyBody().strength(forceStrength)).force("x", frx).force("y", fry);
 }
 
 /**
@@ -147,7 +144,7 @@ function initializeNodes(graphNodes) {
  */
 function _mergeDataLinkWithD3Link(link, index, d3Links = [], config, state = {}) {
   // find the matching link if it exists
-  const tmp = d3Links.find(l => l.source.id === link.source && l.target.id === link.target);
+  const tmp = d3Links.find((l) => l.source.id === link.source && l.target.id === link.target);
   const d3Link = tmp && pick(tmp, LINK_PROPS_WHITELIST);
   const customProps = antiPick(link, ["source", "target"]);
 
@@ -236,11 +233,11 @@ function _validateGraphData(data) {
   for (let i = 0; i < n; i++) {
     const l = data.links[i];
 
-    if (!data.nodes.find(n => n.id === l.source)) {
+    if (!data.nodes.find((n) => n.id === l.source)) {
       throwErr("Graph", `${ERRORS.INVALID_LINKS} - "${l.source}" is not a valid source node id`);
     }
 
-    if (!data.nodes.find(n => n.id === l.target)) {
+    if (!data.nodes.find((n) => n.id === l.target)) {
       throwErr("Graph", `${ERRORS.INVALID_LINKS} - "${l.target}" is not a valid target node id`);
     }
 
@@ -254,7 +251,7 @@ function _validateGraphData(data) {
 }
 
 // list of properties that are of no interest when it comes to nodes and links comparison
-const NODE_PROPERTIES_DISCARD_TO_COMPARE = ["x", "y", "vx", "vy", "index"];
+const NODE_PROPERTIES_DISCARD_TO_COMPARE = ["vx", "vy", "index"];
 
 /**
  * Picks the id.
@@ -290,10 +287,10 @@ function _pickSourceAndTarget(o) {
  * @memberof Graph/helper
  */
 function checkForGraphElementsChanges(nextProps, currentState) {
-  const nextNodes = nextProps.data.nodes.map(n => antiPick(n, NODE_PROPERTIES_DISCARD_TO_COMPARE));
+  const nextNodes = nextProps.data.nodes.map((n) => antiPick(n, NODE_PROPERTIES_DISCARD_TO_COMPARE));
   const nextLinks = nextProps.data.links;
-  const stateD3Nodes = currentState.d3Nodes.map(n => antiPick(n, NODE_PROPERTIES_DISCARD_TO_COMPARE));
-  const stateD3Links = currentState.d3Links.map(l => ({
+  const stateD3Nodes = currentState.d3Nodes.map((n) => antiPick(n, NODE_PROPERTIES_DISCARD_TO_COMPARE));
+  const stateD3Links = currentState.d3Links.map((l) => ({
     source: getId(l.source),
     target: getId(l.target),
   }));
@@ -394,15 +391,15 @@ function initializeGraphState({ data, id, config }, state) {
 
   if (state && state.nodes) {
     graph = {
-      nodes: data.nodes.map(n =>
+      nodes: data.nodes.map((n) =>
         state.nodes[n.id] ? { ...n, ...pick(state.nodes[n.id], NODE_PROPS_WHITELIST) } : { ...n }
       ),
       links: data.links.map((l, index) => _mergeDataLinkWithD3Link(l, index, state && state.d3Links, config, state)),
     };
   } else {
     graph = {
-      nodes: data.nodes.map(n => ({ ...n })),
-      links: data.links.map(l => ({ ...l })),
+      nodes: data.nodes.map((n) => ({ ...n })),
+      links: data.links.map((l) => ({ ...l })),
     };
   }
 
