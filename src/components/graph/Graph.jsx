@@ -220,8 +220,39 @@ export default class Graph extends React.Component {
    * @returns {undefined}
    */
   _onDragEnd = (e) => {
+    const nativeEvent = e.sourceEvent;
+
+    if (this.nodeMouseDown && !this.isDraggingNode) {
+      // Actually just a click
+      const click = new MouseEvent("click", {
+        altKey: nativeEvent.altKey,
+        ctrlKey: nativeEvent.ctrlKey,
+        shiftKey: nativeEvent.shiftKey,
+        metaKey: nativeEvent.metaKey,
+        bubbles: nativeEvent.bubbles,
+        button: nativeEvent.button,
+        buttons: nativeEvent.buttons,
+        clientX: nativeEvent.clientX,
+        clientY: nativeEvent.clientY,
+        screenX: nativeEvent.screenX,
+        screenY: nativeEvent.screenY,
+        bubbles: nativeEvent.bubbles,
+        cancelable: nativeEvent.cancelable,
+        composed: nativeEvent.composed,
+        view: nativeEvent.view,
+      });
+
+      this.isDraggingNode = false;
+      this.nodeMouseDown = null;
+
+      this.allowNodeClick = true;
+      nativeEvent.target.dispatchEvent(click);
+      this.allowNodeClick = false;
+      return;
+    }
+
     this.isDraggingNode = false;
-    this.isReallyDraggingNode = false;
+    this.nodeMouseDown = null;
 
     if (this.state.draggedNodes) {
       this.state.draggedNodes.forEach((node) => {
@@ -245,12 +276,12 @@ export default class Graph extends React.Component {
    * @returns {undefined}
    */
   _onDragMove = (e) => {
-    let triggerDrag = (e.x + this.dragStartCoords[0]) ** 2 + (e.y + this.dragStartCoords[1]) ** 2 > 30;
-    if (!this.isReallyDraggingNode && triggerDrag) {
-      if (!this.state.config.staticGraph && this.isDraggingNode) {
+    if (this.nodeMouseDown) {
+      const delta = (e.x - this.nodeMouseDown.x) ** 2 + (e.y - this.nodeMouseDown.y) ** 2;
+      if (!this.isDraggingNode && delta > 30) {
         const id = this._nodeIdFromEvent(e);
         let draggedNode = this.state.nodes[id];
-        this.isReallyDraggingNode = true;
+        this.isDraggingNode = true;
         if (!this.selection.nodeIsSelected(id)) {
           const oldSelection = this.selection.freeze();
           if (!e.sourceEvent.shiftKey) {
@@ -262,9 +293,8 @@ export default class Graph extends React.Component {
       }
     }
 
-    const ids = Array.from(this.selection.nodes);
-
-    if (!this.state.config.staticGraph && this.isReallyDraggingNode) {
+    if (!this.state.config.staticGraph && this.isDraggingNode) {
+      const ids = Array.from(this.selection.nodes);
       const draggedNodes = ids.flatMap((id) => {
         // this is where d3 and react bind
         let draggedNode = this.state.nodes[id];
@@ -299,9 +329,8 @@ export default class Graph extends React.Component {
    * @returns {undefined}
    */
   _onDragStart = (e) => {
-    this.isDraggingNode = true;
-    this.isReallyDraggingNode = false;
-    this.dragStartCoords = [e.x, e.y];
+    this.nodeMouseDown = e.sourceEvent;
+    this.isDraggingNode = false;
     this.pauseSimulation();
 
     if (this.state.enableFocusAnimation) {
@@ -406,6 +435,9 @@ export default class Graph extends React.Component {
    * @returns {undefined}
    */
   onClickNode = (event, clickedNodeId) => {
+    if (!this.allowNodeClick) {
+      return;
+    }
     const clickedNode = this.state.nodes[clickedNodeId];
     if (!this.nodeClickTimer) {
       // Note: onDoubleClickNode is not defined we don't need a long wait
@@ -678,9 +710,9 @@ export default class Graph extends React.Component {
 
     this.focusAnimationTimeout = null;
     this.nodeClickTimer = null;
-    this.mousePosition = [0, 0];
+    this.nodeMouseDown = null;
     this.isDraggingNode = false;
-    this.isReallyDraggingNode = false;
+    this.allowNodeClick = false;
     this.selection = new Selection();
     if (this.props.selection) {
       this.selection.update(this.props.selection);
