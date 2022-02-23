@@ -488,9 +488,9 @@ export default class Graph extends React.Component {
           selectorBox.setAttribute("style", "fill:rgba(0, 0, 0, 0.1);");
           this.updateSelectorRect(selectorBox, d3Pointer(e), d3Pointer(e));
           g.prepend(selectorBox);
-          this.graphDragging = { start: e, selectorBox: selectorBox };
+          this.graphDragging = { start: e, startSelection: this.selection.freeze(), selectorBox: selectorBox };
         } else {
-          this.graphDragging = { start: e };
+          this.graphDragging = { start: e, startSelection: this.selection.freeze() };
         }
       }
     }
@@ -501,6 +501,8 @@ export default class Graph extends React.Component {
         d3Pointer(e)
       );
       const oldSelection = this.selection.freeze();
+      this.selection.clear();
+      this.selection.addNodes(this.graphDragging.startSelection.nodes);
       const selected = Object.values(this.state.nodes).flatMap((node) => {
         const inBounds = node.x >= bounds[0] && node.x <= bounds[2] && node.y >= bounds[1] && node.y <= bounds[3];
         return inBounds ? [node.id] : [];
