@@ -2,8 +2,8 @@ import React from "react";
 
 import { drag as d3Drag } from "d3-drag";
 import { forceLink as d3ForceLink } from "d3-force";
+import { zoom as d3Zoom, zoomIdentity as d3ZoomIdentity } from "d3-zoom";
 import { select as d3Select, selectAll as d3SelectAll, pointer as d3Pointer } from "d3-selection";
-import { zoom as d3Zoom } from "d3-zoom";
 
 import CONST from "./graph.const";
 import DEFAULT_CONFIG from "./graph.config";
@@ -215,38 +215,39 @@ export default class Graph extends React.Component {
     return (target && target.id) || null;
   };
 
+  makeClick = (e) => {
+    return new MouseEvent("click", {
+      altKey: e.altKey,
+      ctrlKey: e.ctrlKey,
+      shiftKey: e.shiftKey,
+      metaKey: e.metaKey,
+      bubbles: e.bubbles,
+      button: e.button,
+      buttons: e.buttons,
+      clientX: e.clientX,
+      clientY: e.clientY,
+      screenX: e.screenX,
+      screenY: e.screenY,
+      bubbles: e.bubbles,
+      cancelable: e.cancelable,
+      composed: e.composed,
+      view: e.view,
+    });
+  };
+
   /**
    * Handles d3 drag 'end' event.
    * @returns {undefined}
    */
   _onDragEnd = (e) => {
-    const nativeEvent = e.sourceEvent;
-
     if (this.nodeMouseDown && !this.isDraggingNode) {
       // Actually just a click
-      const click = new MouseEvent("click", {
-        altKey: nativeEvent.altKey,
-        ctrlKey: nativeEvent.ctrlKey,
-        shiftKey: nativeEvent.shiftKey,
-        metaKey: nativeEvent.metaKey,
-        bubbles: nativeEvent.bubbles,
-        button: nativeEvent.button,
-        buttons: nativeEvent.buttons,
-        clientX: nativeEvent.clientX,
-        clientY: nativeEvent.clientY,
-        screenX: nativeEvent.screenX,
-        screenY: nativeEvent.screenY,
-        bubbles: nativeEvent.bubbles,
-        cancelable: nativeEvent.cancelable,
-        composed: nativeEvent.composed,
-        view: nativeEvent.view,
-      });
-
+      const click = this.makeClick(e.sourceEvent);
       this.isDraggingNode = false;
       this.nodeMouseDown = null;
 
       this.allowNodeClick = true;
-      nativeEvent.target.dispatchEvent(click);
+      e.sourceEvent.target.dispatchEvent(click);
       this.allowNodeClick = false;
       return;
     }
@@ -367,19 +368,25 @@ export default class Graph extends React.Component {
   _zoomConfig = () => {
     const selector = d3Select(`#${this.state.id}-${CONST.GRAPH_WRAPPER_ID}`);
 
-    const zoomObject = d3Zoom().scaleExtent([this.state.config.minZoom, this.state.config.maxZoom]);
+    this.zoomObject = d3Zoom().scaleExtent([this.state.config.minZoom, this.state.config.maxZoom]);
 
     if (!this.state.config.freezeAllDragEvents) {
-      zoomObject.on("zoom", this._zoomed);
+      this.zoomObject
+        .on("zoom", (e) => {
+          this._zoomed(e);
+          this.onGraphMouseMove(e);
+        })
+        .on("start", this.onGraphMouseDown)
+        .on("end", this.onGraphMouseUp);
     }
 
     if (this.state.config.initialZoom !== null) {
-      zoomObject.scaleTo(selector, this.state.config.initialZoom);
+      this.zoomObject.scaleTo(selector, this.state.config.initialZoom);
     }
 
     // avoid double click on graph to trigger zoom
     // for more details consult: https://github.com/danielcaldas/react-d3-graph/pull/202
-    selector.call(zoomObject).on("dblclick.zoom", null);
+    selector.call(this.zoomObject).on("dblclick.zoom", null);
   };
 
   /**
@@ -387,6 +394,9 @@ export default class Graph extends React.Component {
    * @returns {Object} returns the transformed elements within the svg graph area.
    */
   _zoomed = (e) => {
+    if (!this.allowPanAndZoom) {
+      return;
+    }
     const transform = e.transform;
 
     d3SelectAll(`#${this.state.id}-${CONST.GRAPH_CONTAINER_ID}`).attr("transform", transform);
@@ -400,12 +410,127 @@ export default class Graph extends React.Component {
     }
   };
 
+  isGraphMouseEvent = (e) => {
+    const tagName = e.target && e.target.tagName;
+    const name = e?.target?.attributes?.name?.value;
+    const svgContainerName = `svg-container-${this.state.id}`;
+    return tagName.toUpperCase() === "SVG" && name === svgContainerName;
+  };
+
+  updateSelectorRect = (rect, start, now) => {
+    const svg = document.getElementById(`svg-container-${this.state.id}`);
+    var x, y, width, height;
+    if (start[0] > now[0]) {
+      x = now[0];
+      width = start[0] - x;
+    } else {
+      x = start[0];
+      width = now[0] - x;
+    }
+    if (start[1] > now[1]) {
+      y = now[1];
+      height = start[1] - y;
+    } else {
+      y = start[1];
+      height = now[1] - y;
+    }
+    x = (x - this.state.transform.x - svg.parentElement.offsetLeft) / this.state.transform.k;
+    y = (y - this.state.transform.y - svg.parentElement.offsetTop) / this.state.transform.k;
+    width = width / this.state.transform.k;
+    height = height / this.state.transform.k;
+    rect.setAttribute("x", x);
+    rect.setAttribute("y", y);
+    rect.setAttribute("width", width);
+    rect.setAttribute("height", height);
+    return [x, y, x + width, y + height];
+  };
+
+  onGraphMouseUp = (e) => {
+    if (!e.sourceEvent || e.sourceEvent.type !== "mouseup") {
+      return;
+    }
+    const selection = d3Select(`#${this.state.id}-${CONST.GRAPH_WRAPPER_ID}`);
+    if (this.graphMouseDown && !this.graphDragging) {
+      // Just a click
+      const click = this.makeClick(e.sourceEvent);
+
+      this.allowGraphClick = true;
+      e.sourceEvent.target.dispatchEvent(click);
+      this.allowGraphClick = false;
+    } else if (this.graphMouseDown && this.graphDragging) {
+      // Finished drag!
+      if (this.graphMouseDown.shiftKey) {
+        // Was a "selection" drag
+        const transform = d3ZoomIdentity
+          .translate(this.state.transform.x, this.state.transform.y)
+          .scale(this.state.transform.k);
+        selection.call(this.zoomObject.transform, transform).call(this.zoomObject);
+        document
+          .getElementById(`${this.state.id}-${CONST.GRAPH_CONTAINER_ID}`)
+          .removeChild(this.graphDragging.selectorBox);
+      }
+    }
+    this.allowPanAndZoom = true;
+    this.graphDragging = null;
+    this.graphMouseDown = null;
+  };
+
+  onGraphMouseMove = (e) => {
+    if (!e.sourceEvent || e.sourceEvent.type !== "mousemove") {
+      return;
+    }
+    if (this.graphMouseDown && !this.graphDragging) {
+      const delta = (e.sourceEvent.x - this.graphMouseDown.x) ** 2 + (e.sourceEvent.y - this.graphMouseDown.y) ** 2;
+      if (delta > 30) {
+        if (this.graphMouseDown.shiftKey) {
+          this.allowPanAndZoom = false;
+          const g = document.getElementById(`${this.state.id}-${CONST.GRAPH_CONTAINER_ID}`);
+          const selectorBox = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+          selectorBox.setAttribute("id", `${this.state.id}-SELECTIONBOX`);
+          selectorBox.setAttribute("style", "fill:rgba(0, 0, 0, 0.1);");
+          this.updateSelectorRect(selectorBox, d3Pointer(e), d3Pointer(e));
+          g.prepend(selectorBox);
+          this.graphDragging = { start: e, selectorBox: selectorBox };
+        } else {
+          this.graphDragging = { start: e };
+        }
+      }
+    }
+    if (this.graphDragging && this.graphMouseDown.shiftKey) {
+      const bounds = this.updateSelectorRect(
+        this.graphDragging.selectorBox,
+        d3Pointer(this.graphDragging.start),
+        d3Pointer(e)
+      );
+      const oldSelection = this.selection.freeze();
+      const selected = Object.values(this.state.nodes).flatMap((node) => {
+        const inBounds = node.x >= bounds[0] && node.x <= bounds[2] && node.y >= bounds[1] && node.y <= bounds[3];
+        return inBounds ? [node.id] : [];
+      });
+      this.selection.addNodes(selected);
+      this.onSelectionChange(oldSelection, this.selection.freeze());
+    }
+  };
+
+  onGraphMouseDown = (e) => {
+    if (e.sourceEvent && e.sourceEvent.type === "mousedown" && this.isGraphMouseEvent(e.sourceEvent)) {
+      this.graphMouseDown = e.sourceEvent;
+      this.graphDragging = null;
+      if (e.sourceEvent.shiftKey) {
+        this.allowPanAndZoom = false;
+      }
+    }
+  };
+
   /**
    * Calls the callback passed to the component.
    * @param  {Object} e - The event of onClick handler.
    * @returns {undefined}
    */
   onClickGraph = (e) => {
+    if (!this.allowGraphClick) {
+      return;
+    }
     if (this.state.enableFocusAnimation) {
       this.setState({ enableFocusAnimation: false });
     }
@@ -413,11 +538,7 @@ export default class Graph extends React.Component {
     // Only trigger the graph onClickHandler, if not clicked a node or link.
     // toUpperCase() is added as a precaution, as the documentation says tagName should always
     // return in UPPERCASE, but chrome returns lowercase
-    const tagName = e.target && e.target.tagName;
-    const name = e?.target?.attributes?.name?.value;
-    const svgContainerName = `svg-container-${this.state.id}`;
-
-    if (tagName.toUpperCase() === "SVG" && name === svgContainerName) {
+    if (this.isGraphMouseEvent(e)) {
       this.props.onClickGraph && this.props.onClickGraph(e);
 
       if (!e.shiftKey) {
@@ -713,6 +834,12 @@ export default class Graph extends React.Component {
     this.nodeMouseDown = null;
     this.isDraggingNode = false;
     this.allowNodeClick = false;
+    this.graphMouseDown = null;
+    this.graphDragging = null;
+    this.allowGraphClick = false;
+    this.zoomObject = null;
+    this.allowPanAndZoom = true;
+    this.mousePosition = [0, 0];
     this.selection = new Selection();
     if (this.props.selection) {
       this.selection.update(this.props.selection);
