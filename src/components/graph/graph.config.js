@@ -277,6 +277,7 @@
 export default {
   automaticRearrangeAfterDropNode: false,
   collapsible: false,
+  defs: [],
   directed: false,
   focusAnimationDuration: 0.75,
   focusZoom: 1,
@@ -338,6 +339,8 @@ export default {
     renderLabel: false,
     semanticStrokeWidth: false,
     strokeWidth: 1.5,
+    markerStart: undefined,
+    markerEnd: undefined,
     markerHeight: 6,
     markerWidth: 6,
     type: "STRAIGHT",

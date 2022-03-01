@@ -36,7 +36,7 @@ function _renderLinks(nodes, links, linksMatrix, config, linkCallbacks, highligh
     outLinks = outLinks.filter(({ isHidden }) => !isHidden);
   }
 
-  return outLinks.map(link => {
+  return outLinks.map((link) => {
     const { source, target } = link;
     const sourceId = getId(source);
     const targetId = getId(target);
@@ -74,10 +74,10 @@ function _renderNodes(nodes, nodeCallbacks, config, highlightedNode, highlighted
   let outNodes = Object.keys(nodes);
 
   if (config.collapsible) {
-    outNodes = outNodes.filter(nodeId => isNodeVisible(nodeId, nodes, linksMatrix));
+    outNodes = outNodes.filter((nodeId) => isNodeVisible(nodeId, nodes, linksMatrix));
   }
 
-  return outNodes.map(nodeId => {
+  return outNodes.map((nodeId) => {
     const props = buildNodeProps(
       { ...nodes[nodeId], id: `${nodeId}` },
       config,
@@ -101,7 +101,7 @@ function _renderNodes(nodes, nodeCallbacks, config, highlightedNode, highlighted
 function _renderDefs() {
   let markerCache = {};
 
-  return config => {
+  return (config) => {
     const highlightColor =
       !config.link.highlightColor || config.link.highlightColor === "SAME"
         ? config.link.color
@@ -125,6 +125,10 @@ function _renderDefs() {
           <Marker id={MARKERS.MARKER_MH} refX={medium} fill={highlightColor} {...markerProps} />
           <Marker id={MARKERS.MARKER_L} refX={large} fill={color} {...markerProps} />
           <Marker id={MARKERS.MARKER_LH} refX={large} fill={highlightColor} {...markerProps} />
+          {config.defs.map((m) => {
+            m.key = m.props.id;
+            return m;
+          })}
         </defs>
       );
     }

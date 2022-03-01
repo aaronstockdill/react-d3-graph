@@ -49,7 +49,7 @@ export default class Link extends React.Component {
    * @param {Object} event - native event.
    * @returns {undefined}
    */
-  handleOnRightClickLink = event =>
+  handleOnRightClickLink = (event) =>
     this.props.onRightClickLink && this.props.onRightClickLink(event, this.props.source, this.props.target);
 
   /**
@@ -90,6 +90,11 @@ export default class Link extends React.Component {
 
     if (this.props.markerId) {
       lineProps.markerEnd = `url(#${this.props.markerId})`;
+    } else if (this.props.markerEnd) {
+      lineProps.markerEnd = `url(#${this.props.markerEnd})`;
+    }
+    if (this.props.markerStart) {
+      lineProps.markerStart = `url(#${this.props.markerStart})`;
     }
 
     const { label, id } = this.props;
