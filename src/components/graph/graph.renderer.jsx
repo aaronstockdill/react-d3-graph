@@ -179,6 +179,10 @@ function _renderDefs() {
           <Marker id={MARKERS.MARKER_MH} refX={medium} fill={highlightColor} {...markerProps} />
           <Marker id={MARKERS.MARKER_L} refX={large} fill={color} {...markerProps} />
           <Marker id={MARKERS.MARKER_LH} refX={large} fill={highlightColor} {...markerProps} />
+          {config.defs.map((m) => {
+            m.key = m.props.id;
+            return m;
+          })}
         </defs>
       );
     }

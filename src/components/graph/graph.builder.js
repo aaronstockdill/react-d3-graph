@@ -122,6 +122,8 @@ function buildLinkProps(
   }
 
   const markerId = config.directed ? getMarkerId(highlight, transform, config) : null;
+  const markerStart = config.link.markerStart || link.markerStart;
+  const markerEnd = config.link.markerEnd || link.markerEnd;
 
   const t = 1 / transform;
 
@@ -170,6 +172,8 @@ function buildLinkProps(
     fontWeight,
     label,
     markerId,
+    markerStart,
+    markerEnd,
     mouseCursor: config.link.mouseCursor,
     opacity,
     selected,
