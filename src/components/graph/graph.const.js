@@ -6,6 +6,7 @@ export default {
   FORCE_Y: 0.06,
   GRAPH_CONTAINER_ID: "graph-container-zoomable",
   GRAPH_WRAPPER_ID: "graph-wrapper",
+  GRAPH_GRID_ID: "graph-grid",
   KEYWORDS: {
     SAME: "SAME",
   },

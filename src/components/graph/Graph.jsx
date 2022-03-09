@@ -4,6 +4,7 @@ import { drag as d3Drag } from "d3-drag";
 import { forceLink as d3ForceLink } from "d3-force";
 import { select as d3Select, selectAll as d3SelectAll, event as d3Event } from "d3-selection";
 import { zoom as d3Zoom } from "d3-zoom";
+import { range as d3Range } from "d3-array";
 
 import CONST from "./graph.const";
 import DEFAULT_CONFIG from "./graph.config";
@@ -163,7 +164,7 @@ export default class Graph extends React.Component {
    */
   _graphLinkForceConfig() {
     const forceLink = d3ForceLink(this.state.d3Links)
-      .id(l => l.id)
+      .id((l) => l.id)
       .distance(this.state.config.d3.linkLength)
       .strength(this.state.config.d3.linkStrength);
 
@@ -181,9 +182,7 @@ export default class Graph extends React.Component {
       .on("drag", this._onDragMove)
       .on("end", this._onDragEnd);
 
-    d3Select(`#${this.state.id}-${CONST.GRAPH_WRAPPER_ID}`)
-      .selectAll(".node")
-      .call(customNodeDrag);
+    d3Select(`#${this.state.id}-${CONST.GRAPH_WRAPPER_ID}`).selectAll(".node").call(customNodeDrag);
   }
 
   /**
@@ -326,6 +325,15 @@ export default class Graph extends React.Component {
     const transform = d3Event.transform;
 
     d3SelectAll(`#${this.state.id}-${CONST.GRAPH_CONTAINER_ID}`).attr("transform", transform);
+    const t =
+      "translate(" +
+      (transform.x % (this.state.config.grid.majorStep * transform.k)) +
+      "," +
+      (transform.y % (this.state.config.grid.majorStep * transform.k)) +
+      ") scale(" +
+      transform.k +
+      ")";
+    d3SelectAll(`#${this.state.id}-${CONST.GRAPH_GRID_ID}`).attr("transform", t);
 
     this.setState({ transform });
 
@@ -341,7 +349,7 @@ export default class Graph extends React.Component {
    * @param  {Object} e - The event of onClick handler.
    * @returns {undefined}
    */
-  onClickGraph = e => {
+  onClickGraph = (e) => {
     if (this.state.enableFocusAnimation) {
       this.setState({ enableFocusAnimation: false });
     }
@@ -363,7 +371,7 @@ export default class Graph extends React.Component {
    * @param  {string} clickedNodeId - The id of the node where the click was performed.
    * @returns {undefined}
    */
-  onClickNode = clickedNodeId => {
+  onClickNode = (clickedNodeId) => {
     const clickedNode = this.state.nodes[clickedNodeId];
     if (!this.nodeClickTimer) {
       // Note: onDoubleClickNode is not defined we don't need a long wait
@@ -426,7 +434,7 @@ export default class Graph extends React.Component {
    * @param  {string} id - id of the node that participates in the event.
    * @returns {undefined}
    */
-  onMouseOverNode = id => {
+  onMouseOverNode = (id) => {
     if (this.isDraggingNode) {
       return;
     }
@@ -442,7 +450,7 @@ export default class Graph extends React.Component {
    * @param  {string} id - id of the node that participates in the event.
    * @returns {undefined}
    */
-  onMouseOutNode = id => {
+  onMouseOutNode = (id) => {
     if (this.isDraggingNode) {
       return;
     }
@@ -490,7 +498,7 @@ export default class Graph extends React.Component {
    * @param {Object} node - an object holding information about the dragged node.
    * @returns {undefined}
    */
-  onNodePositionChange = node => {
+  onNodePositionChange = (node) => {
     if (!this.props.onNodePositionChange) {
       return;
     }
@@ -551,6 +559,8 @@ export default class Graph extends React.Component {
       throwErr(this.constructor.name, ERRORS.GRAPH_NO_ID_PROP);
     }
 
+    this.grid = React.createRef();
+    this.container = React.createRef();
     this.focusAnimationTimeout = null;
     this.nodeClickTimer = null;
     this.isDraggingNode = false;
@@ -582,7 +592,7 @@ export default class Graph extends React.Component {
     const transform =
       newConfig.panAndZoom !== this.state.config.panAndZoom ? { x: 0, y: 0, k: 1 } : this.state.transform;
     const focusedNodeId = nextProps.data.focusedNodeId;
-    const d3FocusedNode = this.state.d3Nodes.find(node => `${node.id}` === `${focusedNodeId}`);
+    const d3FocusedNode = this.state.d3Nodes.find((node) => `${node.id}` === `${focusedNodeId}`);
     const containerElId = `${this.state.id}-${CONST.GRAPH_WRAPPER_ID}`;
     const focusTransformation =
       getCenterAndZoomTransformation(d3FocusedNode, this.state.config, containerElId) || this.state.focusTransformation;
@@ -628,6 +638,11 @@ export default class Graph extends React.Component {
     }
 
     if (this.state.configUpdated) {
+      if (this.props.showGrid) {
+        this._drawGrid(this.state.config.grid);
+      } else {
+        this._destroyGrid();
+      }
       this._zoomConfig();
       this.setState({ configUpdated: false });
     }
@@ -636,6 +651,10 @@ export default class Graph extends React.Component {
   componentDidMount() {
     if (!this.state.config.staticGraph) {
       this._graphBindD3ToReactComponent();
+    }
+
+    if (this.props.showGrid) {
+      this._drawGrid(this.state.config.grid);
     }
 
     // graph zoom and drag&drop all network
@@ -654,6 +673,40 @@ export default class Graph extends React.Component {
       clearTimeout(this.focusAnimationTimeout);
       this.focusAnimationTimeout = null;
     }
+  }
+
+  _drawGrid(gridCfg) {
+    const container = this.container.current;
+    const grid = d3Select("#" + this.grid.current.id).selectAll("line");
+
+    const height = container.offsetHeight / this.state.config.minZoom;
+    const width = container.offsetWidth / this.state.config.minZoom;
+    const overflow = gridCfg.majorStep;
+
+    const make = (total, step, major, minor, color, width) => {
+      const count = Math.ceil(total / step);
+      const arr = d3Range(0, count + 1);
+      const gridView = grid.data(arr).enter();
+      gridView
+        .append("line")
+        .attr(major + "1", (d) => d * step)
+        .attr(major + "2", (d) => d * step)
+        .attr(minor + "1", -overflow)
+        .attr(minor + "2", total + overflow)
+        .style("stroke", color)
+        .style("stroke-width", width);
+    };
+
+    make(height, gridCfg.minorStep, "x", "y", gridCfg.minorColor, gridCfg.minorWidth);
+    make(width, gridCfg.minorStep, "y", "x", gridCfg.minorColor, gridCfg.minorWidth);
+    make(height, gridCfg.majorStep, "x", "y", gridCfg.majorColor, gridCfg.majorWidth);
+    make(width, gridCfg.majorStep, "y", "x", gridCfg.majorColor, gridCfg.majorWidth);
+  }
+
+  _destroyGrid() {
+    d3Select("#" + this.grid.current.id)
+      .selectAll("line")
+      .remove();
   }
 
   render() {
@@ -688,9 +741,10 @@ export default class Graph extends React.Component {
     const containerProps = this._generateFocusAnimationProps();
 
     return (
-      <div id={`${this.state.id}-${CONST.GRAPH_WRAPPER_ID}`}>
+      <div id={`${this.state.id}-${CONST.GRAPH_WRAPPER_ID}`} ref={this.container}>
         <svg name={`svg-container-${this.state.id}`} style={svgStyle} onClick={this.onClickGraph}>
           {defs}
+          <g id={`${this.state.id}-${CONST.GRAPH_GRID_ID}`} ref={this.grid} />
           <g id={`${this.state.id}-${CONST.GRAPH_CONTAINER_ID}`} {...containerProps}>
             {links}
             {nodes}
