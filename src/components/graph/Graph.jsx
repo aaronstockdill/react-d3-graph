@@ -4,6 +4,7 @@ import { drag as d3Drag } from "d3-drag";
 import { forceLink as d3ForceLink } from "d3-force";
 import { zoom as d3Zoom, zoomIdentity as d3ZoomIdentity } from "d3-zoom";
 import { select as d3Select, selectAll as d3SelectAll, pointer as d3Pointer } from "d3-selection";
+import { range as d3Range } from "d3-array";
 
 import CONST from "./graph.const";
 import DEFAULT_CONFIG from "./graph.config";
@@ -400,6 +401,15 @@ export default class Graph extends React.Component {
     const transform = e.transform;
 
     d3SelectAll(`#${this.state.id}-${CONST.GRAPH_CONTAINER_ID}`).attr("transform", transform);
+    const t =
+      "translate(" +
+      (transform.x % (this.state.config.grid.majorStep * transform.k)) +
+      "," +
+      (transform.y % (this.state.config.grid.majorStep * transform.k)) +
+      ") scale(" +
+      transform.k +
+      ")";
+    d3SelectAll(`#${this.state.id}-${CONST.GRAPH_GRID_ID}`).attr("transform", t);
 
     this.setState({ transform });
 
@@ -831,6 +841,8 @@ export default class Graph extends React.Component {
       throwErr(this.constructor.name, ERRORS.GRAPH_NO_ID_PROP);
     }
 
+    this.grid = React.createRef();
+    this.container = React.createRef();
     this.focusAnimationTimeout = null;
     this.nodeClickTimer = null;
     this.nodeMouseDown = null;
@@ -926,6 +938,11 @@ export default class Graph extends React.Component {
     }
 
     if (this.state.configUpdated) {
+      if (this.props.showGrid) {
+        this._drawGrid(this.state.config.grid);
+      } else {
+        this._destroyGrid();
+      }
       this._zoomConfig();
       this.setState({ configUpdated: false });
     }
@@ -934,6 +951,10 @@ export default class Graph extends React.Component {
   componentDidMount() {
     if (!this.state.config.staticGraph) {
       this._graphBindD3ToReactComponent();
+    }
+
+    if (this.props.showGrid) {
+      this._drawGrid(this.state.config.grid);
     }
 
     // graph zoom and drag&drop all network
@@ -953,6 +974,40 @@ export default class Graph extends React.Component {
       clearTimeout(this.focusAnimationTimeout);
       this.focusAnimationTimeout = null;
     }
+  }
+
+  _drawGrid(gridCfg) {
+    const container = this.container.current;
+    const grid = d3Select("#" + this.grid.current.id).selectAll("line");
+
+    const height = container.offsetHeight / this.state.config.minZoom;
+    const width = container.offsetWidth / this.state.config.minZoom;
+    const overflow = gridCfg.majorStep;
+
+    const make = (total, step, major, minor, color, width) => {
+      const count = Math.ceil(total / step);
+      const arr = d3Range(0, count + 1);
+      const gridView = grid.data(arr).enter();
+      gridView
+        .append("line")
+        .attr(major + "1", (d) => d * step)
+        .attr(major + "2", (d) => d * step)
+        .attr(minor + "1", -overflow)
+        .attr(minor + "2", total + overflow)
+        .style("stroke", color)
+        .style("stroke-width", width);
+    };
+
+    make(height, gridCfg.minorStep, "x", "y", gridCfg.minorColor, gridCfg.minorWidth);
+    make(width, gridCfg.minorStep, "y", "x", gridCfg.minorColor, gridCfg.minorWidth);
+    make(height, gridCfg.majorStep, "x", "y", gridCfg.majorColor, gridCfg.majorWidth);
+    make(width, gridCfg.majorStep, "y", "x", gridCfg.majorColor, gridCfg.majorWidth);
+  }
+
+  _destroyGrid() {
+    d3Select("#" + this.grid.current.id)
+      .selectAll("line")
+      .remove();
   }
 
   render() {
@@ -989,7 +1044,7 @@ export default class Graph extends React.Component {
     const containerProps = this._generateFocusAnimationProps();
 
     return (
-      <div id={`${this.state.id}-${CONST.GRAPH_WRAPPER_ID}`} style={this.props.style}>
+      <div id={`${this.state.id}-${CONST.GRAPH_WRAPPER_ID}`} style={this.props.style} ref={this.container}>
         <svg
           name={`svg-container-${this.state.id}`}
           id={`svg-container-${this.state.id}`}
@@ -999,6 +1054,7 @@ export default class Graph extends React.Component {
           onKeyUp={this.onKeyUp}
         >
           {defs}
+          <g id={`${this.state.id}-${CONST.GRAPH_GRID_ID}`} ref={this.grid} />
           <g id={`${this.state.id}-${CONST.GRAPH_CONTAINER_ID}`} {...containerProps}>
             {nodes}
             {links}
