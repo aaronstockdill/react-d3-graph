@@ -416,7 +416,7 @@ export default class Graph extends React.Component {
   };
 
   updateSelectorRect = (rect, start, now) => {
-    const svg = document.getElementById(`svg-container-${this.state.id}`);
+    const bounds = document.getElementById(`svg-container-${this.state.id}`).getBoundingClientRect();
     var x, y, width, height;
     if (start[0] > now[0]) {
       x = now[0];
@@ -432,8 +432,8 @@ export default class Graph extends React.Component {
       y = start[1];
       height = now[1] - y;
     }
-    x = (x - this.state.transform.x - svg.parentElement.offsetLeft) / this.state.transform.k;
-    y = (y - this.state.transform.y - svg.parentElement.offsetTop) / this.state.transform.k;
+    x = (x - this.state.transform.x - bounds.left) / this.state.transform.k;
+    y = (y - this.state.transform.y - bounds.top) / this.state.transform.k;
     width = width / this.state.transform.k;
     height = height / this.state.transform.k;
     rect.setAttribute("x", x);
