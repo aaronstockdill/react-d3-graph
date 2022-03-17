@@ -56,13 +56,13 @@ function _getNodeOpacity(node, highlightedNode, highlightedLink, config) {
 function buildLinkProps(link, nodes, links, config, linkCallbacks, highlightedNode, highlightedLink, transform) {
   const { source, target } = link;
   const offsetSource =
-        link.offsetSource
-        || config.link.offsetSource
-        || {dx: 0, dy: 0};
+        link.offsetSource?.(nodes?.[source], nodes?.[target], link.breakpoints) ||
+        config.link.offsetSource?.(nodes?.[source], nodes?.[target], link.breakpoints) ||
+        { dx: 0, dy: 0 };
   const offsetTarget =
-        link.offsetTarget
-        || config.link.offsetTarget
-        || {dx: 0, dy: 0};
+        link.offsetTarget?.(nodes?.[source], nodes?.[target], link.breakpoints) ||
+        config.link.offsetTarget?.(nodes?.[source], nodes?.[target], link.breakpoints) ||
+        { dx: 0, dy: 0 };
 
   let x1 = (nodes?.[source]?.x || 0) + offsetSource.dx;
   let y1 = (nodes?.[source]?.y || 0) + offsetSource.dy;
