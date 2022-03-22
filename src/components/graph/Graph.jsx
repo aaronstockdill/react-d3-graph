@@ -327,9 +327,9 @@ export default class Graph extends React.Component {
     d3SelectAll(`#${this.state.id}-${CONST.GRAPH_CONTAINER_ID}`).attr("transform", transform);
     const t =
       "translate(" +
-      (transform.x % (this.state.config.grid.majorStep * transform.k)) +
+          ((transform.x % (this.state.config.grid.majorStep * transform.k)) - (this.state.config.grid.majorStep * transform.k)) +
       "," +
-      (transform.y % (this.state.config.grid.majorStep * transform.k)) +
+          ((transform.y % (this.state.config.grid.majorStep * transform.k))  - (this.state.config.grid.majorStep * transform.k)) +
       ") scale(" +
       transform.k +
       ")";
@@ -684,7 +684,7 @@ export default class Graph extends React.Component {
     const overflow = gridCfg.majorStep;
 
     const make = (total, step, major, minor, color, width) => {
-      const count = Math.ceil(total / step);
+      const count = Math.ceil((total + 2 * (overflow / this.state.config.minZoom)) / step);
       const arr = d3Range(0, count + 1);
       const gridView = grid.data(arr).enter();
       gridView
