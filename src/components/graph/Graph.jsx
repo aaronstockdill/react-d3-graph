@@ -681,10 +681,10 @@ export default class Graph extends React.Component {
 
     const height = container.offsetHeight / this.state.config.minZoom;
     const width = container.offsetWidth / this.state.config.minZoom;
-    const overflow = gridCfg.majorStep;
+    const overflow = gridCfg.majorStep / this.state.config.minZoom;
 
-    const make = (total, step, major, minor, color, width) => {
-      const count = Math.ceil((total + 2 * (overflow / this.state.config.minZoom)) / step);
+      const make = (fill, span, step, major, minor, color, width) => {
+      const count = Math.ceil((fill + 2 * overflow) / step);
       const arr = d3Range(0, count + 1);
       const gridView = grid.data(arr).enter();
       gridView
@@ -692,15 +692,15 @@ export default class Graph extends React.Component {
         .attr(major + "1", (d) => d * step)
         .attr(major + "2", (d) => d * step)
         .attr(minor + "1", -overflow)
-        .attr(minor + "2", total + overflow)
+        .attr(minor + "2", span + overflow)
         .style("stroke", color)
         .style("stroke-width", width);
     };
 
-    make(height, gridCfg.minorStep, "x", "y", gridCfg.minorColor, gridCfg.minorWidth);
-    make(width, gridCfg.minorStep, "y", "x", gridCfg.minorColor, gridCfg.minorWidth);
-    make(height, gridCfg.majorStep, "x", "y", gridCfg.majorColor, gridCfg.majorWidth);
-    make(width, gridCfg.majorStep, "y", "x", gridCfg.majorColor, gridCfg.majorWidth);
+    make(width, height, gridCfg.minorStep, "x", "y", gridCfg.minorColor, gridCfg.minorWidth);
+    make(height, width, gridCfg.minorStep, "y", "x", gridCfg.minorColor, gridCfg.minorWidth);
+    make(width, height, gridCfg.majorStep, "x", "y", gridCfg.majorColor, gridCfg.majorWidth);
+    make(height, width, gridCfg.majorStep, "y", "x", gridCfg.majorColor, gridCfg.majorWidth);
   }
 
   _destroyGrid() {
