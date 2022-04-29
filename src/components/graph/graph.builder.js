@@ -116,10 +116,11 @@ function buildLinkProps(link, nodes, links, config, linkCallbacks, highlightedNo
     label = null;
 
   if (config.link.renderLabel) {
-    if (typeof config.link.labelProperty === "function") {
-      label = config.link.labelProperty(link);
+    let labelProperty = link.labelProperty || config.link.labelProperty;
+    if (typeof labelProperty === "function") {
+      label = labelProperty(link);
     } else {
-      label = link[config.link.labelProperty];
+      label = link[labelProperty];
     }
 
     fontSize = link.fontSize || config.link.fontSize;
