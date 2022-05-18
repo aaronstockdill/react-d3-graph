@@ -89,6 +89,17 @@ export default class Link extends React.Component {
       style: lineStyle,
     };
 
+    const lineHitProps = {
+      ...lineProps,
+      className: this.props.className + "-hit",
+      style: {
+        stroke: "transparent",
+        strokeWidth: "10px",
+        fill: "none",
+        cursor: this.props.mouseCursor,
+      }
+    };
+
     if (this.props.markerId) {
       lineProps.markerEnd = `url(#${this.props.markerId})`;
     } else if (this.props.markerEnd) {
@@ -110,6 +121,7 @@ export default class Link extends React.Component {
 
     return (
       <g>
+        <path {...lineHitProps} id={id} />
         <path {...lineProps} id={id} />
         {label && (
           <text style={{ textAnchor: "middle" }} {...textProps}>
