@@ -66,6 +66,31 @@ export default class Link extends React.Component {
   handleOnMouseOutLink = () =>
     this.props.onMouseOutLink && this.props.onMouseOutLink(this.props.source, this.props.target);
 
+    constructor(props) {
+        super(props);
+        this.lineRef = React.createRef();
+        this.labelRef = React.createRef();
+    }
+
+    setLabelPosition() {
+        if (this.lineRef.current === null || this.labelRef.current === null) {
+            return;
+        }
+        let length = this.lineRef.current.getTotalLength();
+        let point = this.lineRef.current.getPointAtLength(length * 0.5);
+        let bbox = this.labelRef.current.getBBox();
+        this.labelRef.current.setAttributeNS(null, "x", point.x - bbox.width/2);
+        this.labelRef.current.setAttributeNS(null, "y", point.y - bbox.height/2);
+    }
+
+    componentDidMount() {
+        this.setLabelPosition();
+    }
+
+    componentDidUpdate() {
+        this.setLabelPosition();
+    }
+
   render() {
     const lineStyle = {
       strokeWidth: this.props.strokeWidth,
@@ -93,25 +118,32 @@ export default class Link extends React.Component {
     }
 
     const { label, id } = this.props;
-    const textProps = {
-      dy: -1,
-      style: {
-        fill: this.props.fontColor,
-        fontSize: this.props.fontSize,
-        fontWeight: this.props.fontWeight,
-      },
-    };
+
+    let labelNode = null;
+    if (label === null) {
+      labelNode = React.null;
+    } else if (typeof label === "string") {
+      const textProps = {
+        dy: -1,
+        style: {
+          fill: this.props.fontColor,
+          fontSize: this.props.fontSize,
+          fontWeight: this.props.fontWeight,
+        },
+      };
+      labelNode =
+        <text id={id + "_label"} style={{textAnchor: "middle"}} {...textProps} ref={this.labelRef} >
+          {label}
+        </text>
+    } else {
+      labelNode = <svg ref={this.labelRef} id={id + "_label"}>{label}</svg>
+    }
 
     return (
       <g>
-        <path {...lineProps} id={id} />
-        {label && (
-          <text style={{ textAnchor: "middle" }} {...textProps}>
-            <textPath href={`#${id}`} startOffset="50%">
-              {label}
-            </textPath>
-          </text>
-        )}
+        <path {...lineHitProps} id={id + "_hit"} />
+          <path {...lineProps} id={id} ref={this.lineRef} />
+          {labelNode}
       </g>
     );
   }
