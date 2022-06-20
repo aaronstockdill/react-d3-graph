@@ -149,11 +149,11 @@ export default class Link extends React.Component {
         },
       };
       labelNode =
-        <text id={id + "_label"} style={{textAnchor: "middle"}} {...textProps} ref={this.labelRef} >
+            <text id={id + "_label"} style={{textAnchor: "middle"}} {...textProps} ref={this.labelRef} onClick={this.handleOnClickLink} >
           {label}
         </text>
     } else {
-      labelNode = <svg ref={this.labelRef} id={id + "_label"}>{label}</svg>
+      labelNode = <svg ref={this.labelRef} id={id + "_label"} onClick={this.handleOnClickLink}>{label}</svg>
     }
 
     return (
