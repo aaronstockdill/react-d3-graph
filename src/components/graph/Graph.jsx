@@ -731,7 +731,7 @@ export default class Graph extends React.Component {
       return;
     }
 
-    if (oldSelection != newSelection) {
+    if (!Selection.equal(oldSelection, newSelection)) {
       this.props.onSelectionChange(oldSelection, newSelection);
     }
   };

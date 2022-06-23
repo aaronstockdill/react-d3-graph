@@ -68,6 +68,21 @@ class Selection {
   freeze = () => {
     return { nodes: Array.from(this.nodes), links: Array.from(this.links) };
   };
+
+  static equal = (a, b) => {
+    const eq = (x, y) => {
+      if (x.length !== y.length) {
+        return false;
+      }
+      for (let i=0; i<x.length; i++) {
+        if (x[i] !== y[i]) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return eq(a.nodes, b.nodes) && eq(a.links, b.links);
+  }
 }
 
 export { Selection };
