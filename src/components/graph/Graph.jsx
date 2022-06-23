@@ -358,6 +358,13 @@ export default class Graph extends React.Component {
    */
   _tick = (state = {}, cb) => (cb ? this.setState(state, cb) : this.setState(state));
 
+    _zoomEq = (z1, z2) =>
+    z1 && z2 &&
+        (z1.x !== null && z1.x !== undefined) &&
+        (z1.y !== null && z1.y !== undefined) &&
+        (z1.k !== null && z1.k !== undefined) &&
+        z1.x === z2.x && z1.y === z2.y && z1.k === z2.k
+
   /**
    * Configures zoom upon graph with default or user provided values.<br/>
    * NOTE: in order for users to be able to double click on nodes, we
@@ -383,6 +390,8 @@ export default class Graph extends React.Component {
 
     if (this.state.config.initialZoom !== null) {
       this.zoomObject.scaleTo(selector, this.state.config.initialZoom);
+    } else if (this.state.transform && !this._zoomEq(this.state.transform, this.state.previousZoom)) {
+      this.zoomObject.transform(selector, this.state.transform);
     }
 
     // avoid double click on graph to trigger zoom
@@ -414,9 +423,9 @@ export default class Graph extends React.Component {
     this.setState({ transform });
 
     // only send zoom change events if the zoom has changed (_zoomed() also gets called when panning)
-    if (this.debouncedOnZoomChange && this.state.previousZoom !== transform.k && !this.state.config.panAndZoom) {
-      this.debouncedOnZoomChange(this.state.previousZoom, transform.k);
-      this.setState({ previousZoom: transform.k });
+      if (this.debouncedOnZoomChange && !this._zoomEq(this.state.previousZoom, transform) && !this.state.config.panAndZoom) {
+      this.debouncedOnZoomChange(this.state.previousZoom, transform);
+      this.setState({ previousZoom: transform });
     }
   };
 
@@ -886,12 +895,13 @@ export default class Graph extends React.Component {
 
     // const transform =
     //   newConfig.panAndZoom !== this.state.config.panAndZoom ? { x: 0, y: 0, k: 1 } : this.state.transform;
-    const transform = this.state.transform;
+    const moveTo = this._zoomEq(nextProps.viewTransform, this.state.transform) ? undefined : nextProps.viewTransform;
+    const transform = moveTo || this.state.transform;
     const focusedNodeId = nextProps.data.focusedNodeId;
     const d3FocusedNode = this.state.d3Nodes.find((node) => `${node.id}` === `${focusedNodeId}`);
     const containerElId = `${this.state.id}-${CONST.GRAPH_WRAPPER_ID}`;
     const focusTransformation =
-      getCenterAndZoomTransformation(d3FocusedNode, this.state.config, containerElId) || this.state.focusTransformation;
+      getCenterAndZoomTransformation(d3FocusedNode, this.state.config, containerElId) || this.state.focusTransformation || moveTo;
     const enableFocusAnimation = this.props.data.focusedNodeId !== nextProps.data.focusedNodeId;
 
     // if we're given a function to call when the zoom changes, we create a debounced version of it
