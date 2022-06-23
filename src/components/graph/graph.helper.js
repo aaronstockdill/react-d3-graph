@@ -387,7 +387,7 @@ function getId(sot) {
  * @returns {Object} a fully (re)initialized graph state object.
  * @memberof Graph/helper
  */
-function initializeGraphState({ data, id, config }, state) {
+function initializeGraphState({ data, id, viewTransform, config }, state) {
   _validateGraphData(data);
 
   let graph;
@@ -431,7 +431,7 @@ function initializeGraphState({ data, id, config }, state) {
     simulation,
     newGraphElements: false,
     configUpdated: false,
-    transform: { x: 0, y: 0, k: 1 },
+    transform: viewTransform || d3ZoomIdentity,
     draggedNode: null,
   };
 }
