@@ -292,12 +292,12 @@ export default class Graph extends React.Component {
    */
   _tick = (state = {}, cb) => (cb ? this.setState(state, cb) : this.setState(state));
 
-    _zoomEq = (z1, z2) =>
+  _zoomEq = (z1, z2) =>
     z1 && z2 &&
-        (z1.x !== null && z1.x !== undefined) &&
-        (z1.y !== null && z1.y !== undefined) &&
-        (z1.k !== null && z1.k !== undefined) &&
-        z1.x === z2.x && z1.y === z2.y && z1.k === z2.k
+    z1.x !== null && z1.x !== undefined &&
+    z1.y !== null && z1.y !== undefined &&
+    z1.k !== null && z1.k !== undefined &&
+    z1.x === z2.x && z1.y === z2.y && z1.k === z2.k;
 
   /**
    * Configures zoom upon graph with default or user provided values.<br/>
@@ -327,6 +327,10 @@ export default class Graph extends React.Component {
     selector.call(zoomObject).on("dblclick.zoom", null);
   };
 
+    _zoomed_setState = debounce(state => {
+        this.setState(state);
+    })
+
   /**
    * Handler for 'zoom' event within zoom config.
    * @returns {Object} returns the transformed elements within the svg graph area.
@@ -335,13 +339,25 @@ export default class Graph extends React.Component {
     const transform = d3Event.transform;
 
     d3SelectAll(`#${this.state.id}-${CONST.GRAPH_CONTAINER_ID}`).attr("transform", transform);
+    const majk = this.state.config.grid.majorStep * transform.k;
+    const t =
+      "translate(" +
+          ((transform.x % majk) - majk) +
+      "," +
+          ((transform.y % majk)  - majk) +
+      ") scale(" +
+          transform.k +
+      ")";
+    d3SelectAll(`#${this.state.id}-${CONST.GRAPH_GRID_ID}`).attr("transform", t);
 
-    this.setState({ transform });
-
+    const newZoom = !this._zoomEq(this.state.previousZoom, transform);
     // only send zoom change events if the zoom has changed (_zoomed() also gets called when panning)
-      if (this.debouncedOnZoomChange && !this._zoomEq(this.state.previousZoom, transform) && !this.state.config.panAndZoom) {
+    if (this.debouncedOnZoomChange && newZoom && !this.state.config.panAndZoom) {
       this.debouncedOnZoomChange(this.state.previousZoom, transform);
-      this.setState({ previousZoom: transform });
+      this._zoomed_setState({ transform, previousZoom: transform });
+    } else if (newZoom) {
+      this.setState({ transform });
+      this._zoomed_setState({ transform });
     }
   };
 
