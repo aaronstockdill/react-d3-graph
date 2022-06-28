@@ -431,8 +431,9 @@ export default class Graph extends React.Component {
       this.debouncedOnZoomChange(this.state.previousZoom, transform);
       this._zoomed_setState({ transform, previousZoom: transform });
     } else if (newZoom) {
-      this.setState({ transform });
       this._zoomed_setState({ transform });
+    } else if (this.state.previousZoom === undefined) {
+      this.setState({ previousZoom: transform });
     }
   };
 
