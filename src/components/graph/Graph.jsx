@@ -803,8 +803,8 @@ export default class Graph extends React.Component {
   _mouseConfig() {
     d3Select(`#svg-container-${this.state.id}`)
       .on("mousemove", this.updateMousePosition)
-      .on("mouseover", this.enableKeybindings)
-      .on("mouseout", this.disableKeybindings);
+      .on("mouseenter", this.enableKeybindings)
+      .on("mouseleave", this.disableKeybindings);
   }
 
   /**
