@@ -290,10 +290,10 @@ function _pickSourceAndTarget(o) {
  * @memberof Graph/helper
  */
 function checkForGraphElementsChanges(nextProps, currentState) {
-  const nextNodes = nextProps.data.nodes.map(n => antiPick(n, NODE_PROPERTIES_DISCARD_TO_COMPARE));
-  const nextLinks = nextProps.data.links;
-  const stateD3Nodes = currentState.d3Nodes.map(n => antiPick(n, NODE_PROPERTIES_DISCARD_TO_COMPARE));
-  const stateD3Links = currentState.d3Links.map(l => ({
+  const nextNodes = nextProps.data.nodes.map((n) => antiPick(n, NODE_PROPERTIES_DISCARD_TO_COMPARE));
+  const nextLinks = nextProps.data.links.map((l) => ({source: getId(l.source), target:getId(l.target)}));
+  const stateD3Nodes = currentState.d3Nodes.map((n) => antiPick(n, NODE_PROPERTIES_DISCARD_TO_COMPARE));
+  const stateD3Links = currentState.d3Links.map((l) => ({
     source: getId(l.source),
     target: getId(l.target),
   }));
@@ -317,9 +317,12 @@ function checkForGraphElementsChanges(nextProps, currentState) {
  * @memberof Graph/helper
  */
 function checkForGraphConfigChanges(nextProps, currentState) {
-  const newConfig = nextProps.config || {};
-  const configUpdated = newConfig && !isEmptyObject(newConfig) && !isDeepEqual(newConfig, currentState.config);
-  const d3ConfigUpdated = newConfig && newConfig.d3 && !isDeepEqual(newConfig.d3, currentState.config.d3);
+  const newConfig = antiPick(nextProps.config || {}, ["d3"]);
+  const oldConfig = pick(currentState.config, Object.keys(newConfig));
+  const configUpdated = newConfig && !isEmptyObject(newConfig) && !isDeepEqual(newConfig, oldConfig);
+  const newD3Config = (nextProps.config && nextProps.config.d3) || {};
+  const oldD3Config = pick(currentState.config.d3, Object.keys(newD3Config));
+  const d3ConfigUpdated = newConfig && newConfig.d3 && !isDeepEqual(newD3Config, oldD3Config);
 
   return { configUpdated, d3ConfigUpdated };
 }
