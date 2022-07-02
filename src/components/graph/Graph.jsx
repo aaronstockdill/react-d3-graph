@@ -904,13 +904,14 @@ export default class Graph extends React.Component {
     // const transform =
     //   newConfig.panAndZoom !== this.state.config.panAndZoom ? { x: 0, y: 0, k: 1 } : this.state.transform;
     const moveTo = this._zoomEq(nextProps.viewTransform, this.state.transform) ? undefined : nextProps.viewTransform;
+    const zoomUpdated = moveTo !== undefined || configUpdated || d3ConfigUpdated;
     const transform = moveTo || this.state.transform;
     const focusedNodeId = nextProps.data.focusedNodeId;
     const d3FocusedNode = this.state.d3Nodes.find((node) => `${node.id}` === `${focusedNodeId}`);
     const containerElId = `${this.state.id}-${CONST.GRAPH_WRAPPER_ID}`;
     const focusTransformation =
       getCenterAndZoomTransformation(d3FocusedNode, this.state.config, containerElId) || this.state.focusTransformation || moveTo;
-    const enableFocusAnimation = this.props.data.focusedNodeId !== nextProps.data.focusedNodeId;
+    const enableFocusAnimation = this.props.data.focusedNodeId !== nextProps.data.focusedNodeId || moveTo;
 
     // if we're given a function to call when the zoom changes, we create a debounced version of it
     // this is because this function gets called in very rapid succession when zooming
@@ -929,6 +930,7 @@ export default class Graph extends React.Component {
       d3ConfigUpdated,
       newGraphElements,
       transform,
+      zoomUpdated,
       focusedNodeId,
       enableFocusAnimation,
       focusTransformation,
@@ -961,8 +963,11 @@ export default class Graph extends React.Component {
       } else {
         this._destroyGrid();
       }
-      this._zoomConfig();
       this.setState({ configUpdated: false });
+    }
+    if (this.state.zoomUpdated) {
+      this._zoomConfig();
+      this.setState({ zoomUpdated: false });
     }
   }
 
