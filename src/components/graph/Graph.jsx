@@ -591,6 +591,7 @@ export default class Graph extends React.Component {
 
     const transform =
       newConfig.panAndZoom !== this.state.config.panAndZoom ? { x: 0, y: 0, k: 1 } : this.state.transform;
+    const showGrid = nextProps.showGrid;
     const focusedNodeId = nextProps.data.focusedNodeId;
     const d3FocusedNode = this.state.d3Nodes.find((node) => `${node.id}` === `${focusedNodeId}`);
     const containerElId = `${this.state.id}-${CONST.GRAPH_WRAPPER_ID}`;
@@ -606,6 +607,7 @@ export default class Graph extends React.Component {
 
     this.setState({
       ...state,
+      showGrid,
       config,
       configUpdated,
       d3ConfigUpdated,
@@ -637,12 +639,13 @@ export default class Graph extends React.Component {
       this._graphNodeDragConfig();
     }
 
+    if (this.props.showGrid) {
+      this._drawGrid(this.state.config.grid);
+    } else {
+      this._destroyGrid();
+    }
+
     if (this.state.configUpdated) {
-      if (this.props.showGrid) {
-        this._drawGrid(this.state.config.grid);
-      } else {
-        this._destroyGrid();
-      }
       this._zoomConfig();
       this.setState({ configUpdated: false });
     }
