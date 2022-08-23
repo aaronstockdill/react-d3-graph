@@ -658,13 +658,13 @@ export default class Graph extends React.Component {
     }
 
     if (this.state.configUpdated) {
- 
       this.setState({ configUpdated: false });
     }
     if (this.state.zoomUpdated) {
-      this._zoomConfig();
       this.setState({ zoomUpdated: false });
     }
+
+    this._zoomConfig();
   }
 
   componentDidMount() {
