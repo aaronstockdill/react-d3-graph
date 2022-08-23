@@ -67,30 +67,32 @@ export default class Link extends React.Component {
   handleOnMouseOutLink = (event) =>
     this.props.onMouseOutLink && this.props.onMouseOutLink(event, this.props.source, this.props.target);
 
-    constructor(props) {
-        super(props);
-        this.lineRef = React.createRef();
-        this.labelRef = React.createRef();
-    }
+  constructor(props) {
+    super(props);
+    this.lineRef = React.createRef();
+    this.labelRef = React.createRef();
+  }
 
-    setLabelPosition() {
-        if (this.lineRef.current === null || this.labelRef.current === null) {
-            return;
-        }
-        let length = this.lineRef.current.getTotalLength();
-        let point = this.lineRef.current.getPointAtLength(length * 0.5);
-        let bbox = this.labelRef.current.getBBox();
-        this.labelRef.current.setAttributeNS(null, "x", point.x - bbox.width/2);
-        this.labelRef.current.setAttributeNS(null, "y", point.y - bbox.height/2);
+  setLabelPosition() {
+    if (this.lineRef.current === null || this.labelRef.current === null) {
+      return;
     }
+    let length = this.lineRef.current.getTotalLength();
+    let point = this.lineRef.current.getPointAtLength(length * 0.5);
+    let bbox = this.labelRef.current.getBBox();
+    this.labelRef.current.setAttributeNS(null, "x", point.x - bbox.width/2);
+    this.labelRef.current.setAttributeNS(null, "y", point.y - bbox.height/2);
+  }
 
-    componentDidMount() {
-        this.setLabelPosition();
-    }
+  componentDidMount() {
+    this.setLabelPosition();
+  }
 
-    componentDidUpdate() {
-        this.setLabelPosition();
+  componentDidUpdate(prevProps) {
+    if (this.props.d !== prevProps.d) {
+      this.setLabelPosition();
     }
+  }
 
   render() {
     const lineStyle = {
@@ -149,7 +151,7 @@ export default class Link extends React.Component {
         },
       };
       labelNode =
-            <text id={id + "_label"} style={{textAnchor: "middle"}} {...textProps} ref={this.labelRef} onClick={this.handleOnClickLink} >
+        <text id={id + "_label"} style={{textAnchor: "middle"}} {...textProps} ref={this.labelRef} onClick={this.handleOnClickLink} >
           {label}
         </text>
     } else {
