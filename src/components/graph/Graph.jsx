@@ -638,6 +638,7 @@ export default class Graph extends React.Component {
   }
 
   componentDidUpdate() {
+    var shouldUpdateZoomConfig = false;
     // if the property staticGraph was activated we want to stop possible ongoing simulation
     const shouldPause = this.state.config.staticGraph || this.state.config.staticGraphWithDragAndDrop;
 
@@ -647,6 +648,7 @@ export default class Graph extends React.Component {
 
     if (!this.state.config.staticGraph && (this.state.newGraphElements || this.state.d3ConfigUpdated)) {
       this._graphBindD3ToReactComponent();
+      shouldUpdateZoomConfig = true;
 
       if (!this.state.config.staticGraphWithDragAndDrop) {
         this.restartSimulation();
@@ -654,17 +656,22 @@ export default class Graph extends React.Component {
 
       this.setState({ newGraphElements: false, d3ConfigUpdated: false });
     } else if (this.state.configUpdated) {
+      shouldUpdateZoomConfig = true;
       this._graphNodeDragConfig();
     }
 
     if (this.state.configUpdated) {
+      shouldUpdateZoomConfig = true;
       this.setState({ configUpdated: false });
     }
     if (this.state.zoomUpdated) {
+      shouldUpdateZoomConfig = true;
       this.setState({ zoomUpdated: false });
     }
 
-    this._zoomConfig();
+    if (shouldUpdateZoomConfig) {
+      this._zoomConfig();
+    }
   }
 
   componentDidMount() {
