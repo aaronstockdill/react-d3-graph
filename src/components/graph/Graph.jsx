@@ -492,6 +492,7 @@ export default class Graph extends React.Component {
           .translate(this.state.transform.x, this.state.transform.y)
           .scale(this.state.transform.k);
         selection.call(this.zoomObject.transform, transform).call(this.zoomObject);
+        this._zoomConfig();
         document
           .getElementById(`${this.state.id}-${CONST.GRAPH_CONTAINER_ID}`)
           .removeChild(this.graphDragging.selectorBox);
