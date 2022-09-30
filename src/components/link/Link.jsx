@@ -73,22 +73,22 @@ export default class Link extends React.Component {
     }
 
     setLabelPosition() {
-        if (this.lineRef.current === null || this.labelRef.current === null) {
-            return;
-        }
-        let length = this.lineRef.current.getTotalLength();
-        let point = this.lineRef.current.getPointAtLength(length * 0.5);
-        let bbox = this.labelRef.current.getBBox();
-        this.labelRef.current.setAttributeNS(null, "x", point.x - bbox.width/2);
-        this.labelRef.current.setAttributeNS(null, "y", point.y - bbox.height/2);
+      if (this.lineRef.current === null || this.labelRef.current === null) {
+        return;
+      }
+      let length = this.lineRef.current.getTotalLength();
+      let point = this.lineRef.current.getPointAtLength(length * 0.5);
+      let bbox = this.labelRef.current.getBBox();
+      this.labelRef.current.setAttributeNS(null, "x", point.x - bbox.width/2);
+      this.labelRef.current.setAttributeNS(null, "y", point.y - bbox.height/2);
     }
 
     componentDidMount() {
-        this.setLabelPosition();
+      this.setLabelPosition();
     }
 
     componentDidUpdate() {
-        this.setLabelPosition();
+      this.setLabelPosition();
     }
 
   render() {
