@@ -89,9 +89,7 @@ export default class Link extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.d !== prevProps.d) {
-      this.setLabelPosition();
-    }
+    this.setLabelPosition();
   }
 
   render() {
