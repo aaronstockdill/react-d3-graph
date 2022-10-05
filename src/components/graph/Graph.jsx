@@ -441,7 +441,9 @@ export default class Graph extends React.Component {
     const tagName = e.target && e.target.tagName;
     const name = e?.target?.attributes?.name?.value;
     const svgContainerName = `svg-container-${this.state.id}`;
-    return tagName.toUpperCase() === "SVG" && name === svgContainerName;
+    const svgGridId = `${this.state.id}-${CONST.GRAPH_GRID_ID}`;
+    return ((tagName.toUpperCase() === "SVG" && name === svgContainerName)
+            || (tagName.toUpperCase() === "LINE" && e?.target?.parentElement?.id == svgGridId));
   };
 
   updateSelectorRect = (rect, start, now) => {
