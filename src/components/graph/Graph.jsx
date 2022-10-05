@@ -360,8 +360,11 @@ export default class Graph extends React.Component {
     const tagName = e.target && e.target.tagName;
     const name = e?.target?.attributes?.name?.value;
     const svgContainerName = `svg-container-${this.state.id}`;
+    const svgGridId = `${this.state.id}-${CONST.GRAPH_GRID_ID}`;
+    const isGraphTarget = ((tagName.toUpperCase() === "SVG" && name === svgContainerName)
+                           || (tagName.toUpperCase() === "LINE" && e?.target?.parentElement?.id == svgGridId));
 
-    if (tagName.toUpperCase() === "SVG" && name === svgContainerName) {
+    if (isGraphTarget) {
       this.props.onClickGraph && this.props.onClickGraph(e);
     }
   };
