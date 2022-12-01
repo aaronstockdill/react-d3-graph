@@ -282,6 +282,9 @@ export default class Graph extends React.Component {
       const delta = (e.x - this.nodeMouseDown.x) ** 2 + (e.y - this.nodeMouseDown.y) ** 2;
       if (!this.isDraggingNode && delta > 30) {
         const id = this._nodeIdFromEvent(e);
+        if (id === null) {
+          return;
+        }
         let draggedNode = this.state.nodes[id];
         this.isDraggingNode = true;
         if (!this.selection.nodeIsSelected(id)) {
