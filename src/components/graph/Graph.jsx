@@ -689,7 +689,7 @@ export default class Graph extends React.Component {
     const width = container.offsetWidth / this.state.config.minZoom;
     const overflow = gridCfg.majorStep / this.state.config.minZoom;
 
-      const make = (fill, span, step, major, minor, color, width) => {
+    const make = (fill, span, step, major, minor, color, width) => {
       const count = Math.ceil((fill + 2 * overflow) / step);
       const arr = d3Range(0, count + 1);
       const gridView = grid.data(arr).enter();
